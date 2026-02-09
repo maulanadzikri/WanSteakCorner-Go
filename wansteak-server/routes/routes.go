@@ -27,6 +27,7 @@ func SetupRouter(menuController *controllers.MenuController, orderController *co
 	{
 		api.GET("/menu", menuController.GetAll)
 		api.POST("/orders", orderController.Create)
+		api.GET("/order/:id", orderController.GetOrder)
 		api.POST("/webhook", orderController.HandleWebhook)
 
 		admin := api.Group("/admin")

@@ -15,6 +15,7 @@ import (
 type OrderUsecase interface {
 	PlaceOrder(input models.CreateOrderInput) (models.Order, error)
 	PaymentNotification(input models.MidtransNotificationInput) error
+	GetOrder(id string) (models.Order, error)
 }
 
 type orderUsecase struct {
@@ -130,4 +131,8 @@ func (u *orderUsecase) PaymentNotification(input models.MidtransNotificationInpu
 	}
 
 	return u.ordeRepo.UpdateStatus(orderID, newStatus)
+}
+
+func (u *orderUsecase) GetOrder(id string) (models.Order, error) {
+	return u.ordeRepo.FindByID(id)
 }

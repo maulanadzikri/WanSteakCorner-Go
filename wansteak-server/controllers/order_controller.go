@@ -52,3 +52,14 @@ func (c *OrderController) HandleWebhook(ctx *gin.Context){
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "Notification received"})
 }
+
+func (c *OrderController) GetOrder(ctx *gin.Context){
+	id := ctx.Param("id")
+	order, err := c.orderUsecase.GetOrder(id)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
+		return 
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": order})
+}
