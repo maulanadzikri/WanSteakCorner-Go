@@ -37,30 +37,92 @@ const Transactions = () => {
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar cartCount={0} setShowCart={() => {}} />
-            <div className="container mx-auto p-6">
+            <div className="container mx-auto p-4 md:p-6">
                 <h2 className="text-2xl font-bold mb-6">Riwayat Pesanan Saya</h2>
                 <div className="space-y-4">
                     {orders.map((order) => (
-                        <div key={order.order_id} className="bg-white p-4 rounded shadow flex justify-between items-center">
-                            <div>
-                                <p className="font-bold">Order ID: {order.order_id} </p>
-                                <p className="text-gray-600">Total: Rp {order.total?.toLocaleString()} </p>
-                                <p className={`text-sm font-bold ${order.status === 'paid' ? 'text-green-600' : 'text-orange-500'}`}>
-                                    Status: {(order.status || 'pending').toUpperCase()}
-                                </p>
-                            </div>
+                        <div key={order.order_id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-4 transition hover:shadow-md">
+        
+                            {/* GUNAKAN GRID LAYOUT (12 Kolom) */}
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
 
-                            {/* Tombol bayar hanya muncul jika status 'pending' */}
-                            {order.status === 'pending' && (
-                                <button
-                                    onClick={() => handlePay(order.snap_token)}
-                                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                                    Bayar Sekarang
-                                </button>
-                            )}
+                                {/* KOLOM KIRI: Info Order (3 Kolom) */}
+                                <div className="md:col-span-3 space-y-1">
+                                    <p className="text-xs text-gray-400 font-medium">Order ID</p>
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="font-bold text-gray-800 text-sm">{order.order_id}</h3>
+                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase ${
+                                            order.status === 'paid' ? 'bg-green-100 text-green-700' : 
+                                            order.status === 'pending' ? 'bg-orange-100 text-orange-700' : 
+                                            'bg-red-100 text-red-700'
+                                        }`}>
+                                            {order.status || 'unknown'}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-gray-400">
+                                        {new Date(order.date || Date.now()).toLocaleString('id-ID', {
+                                            day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                                        })}
+                                    </p>
+                                    <p className="text-sm font-semibold text-yellow-600 pt-1">
+                                        {order.customer_name || 'Pelanggan'} 
+                                    </p>
+                                </div>
+
+                                {/* KOLOM TENGAH: Rincian Menu (6 Kolom) */}
+                                {/* Area ini akan selalu mengambil 50% lebar kartu, membuat posisi konsisten */}
+                                <div className="md:col-span-6 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                    <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Rincian Menu</p>
+                                    <ul className="space-y-1">
+                                        {/* Tampilkan maksimal 2 item, sisanya "+ X others" agar rapi */}
+                                        {(order.items || []).slice(0, 3).map((item, idx) => (
+                                            <li key={idx} className="flex justify-between text-sm text-gray-700">
+                                                <span className="truncate w-2/3">
+                                                    {item.quantity}x {item.menu_name}
+                                                </span>
+                                                <span className="font-medium text-gray-500">
+                                                    Rp {item.sub_total?.toLocaleString()}
+                                                </span>
+                                            </li>
+                                        ))}
+                                        {(order.items || []).length > 3 && (
+                                            <li className="text-xs text-gray-400 italic pt-1">
+                                                + {(order.items || []).length - 3} menu lainnya...
+                                            </li>
+                                        )}
+                                    </ul>
+                                </div>
+
+                                {/* KOLOM KANAN: Total & Action (3 Kolom) */}
+                                <div className="md:col-span-3 flex flex-col items-end justify-center text-right h-full">
+                                    <p className="text-xs text-gray-400 mb-1">Total Pembayaran</p>
+                                    <p className="text-xl font-bold text-red-600 mb-3">
+                                        Rp {order.total?.toLocaleString()}
+                                    </p>
+                                    
+                                    {/* Tombol hanya muncul jika Pending, tapi tidak menggeser layout kolom */}
+                                    <div className="h-10 w-full flex justify-end">
+                                        {order.status === 'pending' ? (
+                                            <button 
+                                                onClick={() => handlePay(order.snap_token)}
+                                                className="bg-blue-600 text-white text-sm px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition shadow-sm hover:shadow-md w-full md:w-auto">
+                                                Bayar Sekarang
+                                            </button>
+                                        ) : (
+                                            // Placeholder kosong agar tinggi tetap terjaga (opsional)
+                                            <div className="h-10"></div> 
+                                        )}
+                                    </div>
+                                </div>
+
+                            </div>
                         </div>
                     ))}
-                    {orders.length === 0 && <p>Belum ada riwayat transaksi.</p>}
+                    {orders.length === 0 && (
+                        <div className="text-center py-10 text-gray-500">
+                            <p>Belum ada riwayat transaksi.</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

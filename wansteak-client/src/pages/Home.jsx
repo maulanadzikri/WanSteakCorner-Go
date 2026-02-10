@@ -115,8 +115,8 @@ const Home = () => {
       <Navbar cartCount={cart.reduce((a, b) => a + b.qty, 0)} setShowCart={setShowCart} />
 
       {/* Main Content */}
-      <div className="container mx-auto p-6">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Daftar Menu</h2>
+      <div className="container mx-auto p-4 md:p-6">
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Daftar Menu</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {menus.map((menu) => (
             <MenuCard key={menu.id} menu={menu} addToCart={addToCart} />
@@ -126,7 +126,7 @@ const Home = () => {
 
       {/* Cart Sidebar / Modal */}
       {showCart && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
+        <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex justify-end">
           <div className="bg-white w-full max-w-md h-full p-6 shadow-xl overflow-y-auto relative">
             <button 
                 onClick={() => setShowCart(false)}
