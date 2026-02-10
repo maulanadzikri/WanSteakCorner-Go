@@ -8,6 +8,22 @@ import (
 
 var DB *gorm.DB
 
+type User struct {
+	ID uint `json:"id" gorm:"primaryKey"`
+	Email string `json:"email" gorm:"unique"`
+	Password string `json:"password"`
+	Role string `json:"role"`
+}
+
+type LoginInput struct {
+	Email string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+}
+
+type RegisterInput struct {
+	Email string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+}
 type Menu struct {
 	ID    uint    `json:"id" gorm:"primaryKey"`
 	Name  string  `json:"name"`

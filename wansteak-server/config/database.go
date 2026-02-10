@@ -32,7 +32,7 @@ func ConnectDatabase() *gorm.DB {
 		panic("Failed to connect to database!")
 	}
 
-	db.AutoMigrate(&models.Menu{}, &models.Order{}, &models.OrderItem{})
+	db.AutoMigrate(&models.Menu{}, &models.Order{}, &models.OrderItem{}, &models.User{})
 	log.Println("Database connected successfully")
 
 	return db

@@ -6,7 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(menuController *controllers.MenuController, orderController *controllers.OrderController) *gin.Engine {
+func SetupRouter(
+	menuController *controllers.MenuController,
+	orderController *controllers.OrderController,
+	authController *controllers.AuthController,
+) *gin.Engine {
+
 	r := gin.Default()
 
 	r.Use(func(c *gin.Context) {
@@ -25,10 +30,17 @@ func SetupRouter(menuController *controllers.MenuController, orderController *co
 
 	api := r.Group("/api")
 	{
+
 		api.GET("/menu", menuController.GetAll)
 		api.POST("/orders", orderController.Create)
 		api.GET("/orders/:id", orderController.GetOrder)
 		api.POST("/webhook", orderController.HandleWebhook)
+
+		auth := api.Group("/auth")
+		{
+			auth.POST("/register", authController.Register)
+			auth.POST("/login", authController.Login)
+		}
 
 		admin := api.Group("/admin")
 		{
