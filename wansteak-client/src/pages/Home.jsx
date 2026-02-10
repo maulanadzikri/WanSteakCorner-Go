@@ -65,7 +65,19 @@ const Home = () => {
 
       // Tembak API Backend
       const response = await api.post('/orders', payload);
-      const { snap_token } = response.data.data; // Pastikan path ini sesuai response backendmu
+      const { snap_token, id } = response.data.data; // Pastikan path ini sesuai response backendmu
+
+      const currentHistory = JSON.parse(localStorage.getItem('wansteak_orders') || '[]');
+      const newOrderHistory = [
+        {
+          order_id: id,
+          snap_token: snap_token,
+          total: calculateTotal(),
+          date: new Date().toISOString()
+        },
+        ...currentHistory
+      ];
+      localStorage.setItem('wansteak_orders', JSON.stringify(newOrderHistory));
 
       // Tampilkan Popup Midtrans
       if (window.snap) {
