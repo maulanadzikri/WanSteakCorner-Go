@@ -2,6 +2,7 @@ package routes
 
 import (
 	"wansteak-server/controllers"
+	"wansteak-server/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -42,11 +43,12 @@ func SetupRouter(
 			auth.POST("/login", authController.Login)
 		}
 
-		admin := api.Group("/admin")
+		protected := api.Group("/")
+		protected.Use(middleware.AuthMiddleWare())
 		{
-			admin.POST("/menu", menuController.Create)
-			admin.PUT("/menu/:id", menuController.Update)
-			admin.DELETE("/menu/:id", menuController.Delete)
+			protected.POST("/menu", menuController.Create)
+			protected.PUT("/menu/:id", menuController.Update)
+			protected.DELETE("/menu/:id", menuController.Delete)
 		}
 	}
 
