@@ -5,7 +5,7 @@ const MenuCard = ({ menu, addToCart }) => {
     <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
       {/* Gambar dengan fallback jika error */}
       <img 
-        src={menu.image || "https://via.placeholder.com/300x200?text=No+Image"} 
+        src={menu.image || "https://placehold.co/300x200?text=No+Image"} 
         alt={menu.name} 
         className="w-full h-48 object-cover"
       />
