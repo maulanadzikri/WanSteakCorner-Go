@@ -20,11 +20,11 @@ type OrderUsecase interface {
 
 type orderUsecase struct {
 	menuRepo repository.MenuRepository
-	ordeRepo repository.OrderRepository
+	orderRepo repository.OrderRepository
 }
 
 func NewOrderUsecase(m repository.MenuRepository, o repository.OrderRepository) OrderUsecase {
-	return &orderUsecase{menuRepo: m, ordeRepo: o}
+	return &orderUsecase{menuRepo: m, orderRepo: o}
 }
 
 func (u *orderUsecase) PlaceOrder(input models.CreateOrderInput) (models.Order, error) {
@@ -67,7 +67,7 @@ func (u *orderUsecase) PlaceOrder(input models.CreateOrderInput) (models.Order, 
 		Items:     orderItems,
 	}
 
-	if err := u.ordeRepo.Save(newOrder); err != nil {
+	if err := u.orderRepo.Save(newOrder); err != nil {
 		return models.Order{}, err
 	}
 
@@ -124,15 +124,17 @@ func (u *orderUsecase) PaymentNotification(input models.MidtransNotificationInpu
 		}
 	} else if transactionStatus == "settlement" {
 		newStatus = "paid"
-	} else if transactionStatus == "deny" || transactionStatus == "expire" || transactionStatus == "cancel" {
+	} else if transactionStatus == "expire" {
+		newStatus = "expired"
+	} else if transactionStatus == "deny" || transactionStatus == "cancel" {
 		newStatus = "cancelled"
 	} else if transactionStatus == "pending" {
 		newStatus = "pending"
 	}
 
-	return u.ordeRepo.UpdateStatus(orderID, newStatus)
+	return u.orderRepo.UpdateStatus(orderID, newStatus)
 }
 
 func (u *orderUsecase) GetOrder(id string) (models.Order, error) {
-	return u.ordeRepo.FindByID(id)
+	return u.orderRepo.FindByID(id)
 }
