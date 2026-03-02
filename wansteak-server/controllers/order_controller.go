@@ -63,3 +63,15 @@ func (c *OrderController) GetOrder(ctx *gin.Context){
 
 	ctx.JSON(http.StatusOK, gin.H{"data": order})
 }
+
+func (c *OrderController) CancelOrder(ctx *gin.Context){
+	orderID := ctx.Param("id")
+
+	err := c.orderUsecase.CancelOrder(orderID)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Pesanan berhasil dibatalkan."})
+}

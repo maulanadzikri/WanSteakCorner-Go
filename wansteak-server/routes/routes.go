@@ -35,6 +35,7 @@ func SetupRouter(
 		api.GET("/menu", menuController.GetAll)
 		api.POST("/orders", orderController.Create)
 		api.GET("/orders/:id", orderController.GetOrder)
+		api.POST("/orders/:id/cancel", orderController.CancelOrder)
 		api.POST("/webhook", orderController.HandleWebhook)
 
 		auth := api.Group("/auth")

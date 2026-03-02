@@ -4,25 +4,32 @@ import Navbar from '../components/Navbar';
 
 const Transactions = () => {
     const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+    const fetchOrders = async () => {
         // 1. ambil data dari local storage
         const localData = JSON.parse(localStorage.getItem('wansteak_orders') || '[]');
 
-        // 2. cek status terbaru ke backend untuk setiap order
-        const fetchStatuses = async () => {
-            const updateOrders = await Promise.all(localData.map(async (item) => {
-                try {
-                    const res = await api.get(`/orders/${item.order_id}`);
-                    return {...item, ...res.data.data}; // gabung data local + data BE (status terbaru)
-                } catch (err) {
-                    return item; // jika error (misal dihapus db), pakai data local saja
-                }
-            }));
-            setOrders(updateOrders);
-        };
+        if (localData.length === 0) {
+            setLoading(false);
+            return;
+        }
 
-        if (localData.length > 0) fetchStatuses();
+        const updateOrders = await Promise.all(localData.map(async (item) => {
+            try {
+                const res = await api.get(`/orders/${item.order_id}`);
+                return {...item, ...res.data.data}; // gabung data local + data BE (status terbaru)
+            } catch (err) {
+                return item; // jika error (misal dihapus db), pakai data local saja
+            }
+        }));
+
+        setOrders(updateOrders);
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        fetchOrders();
     }, []);
 
     const handlePay = (snap_token) => {
@@ -31,6 +38,20 @@ const Transactions = () => {
                 onSuccess: () => window.location.reload(),
                 onPending: () => window.location.reload(),
             });
+        }
+    };
+
+    const handleCancel = async (orderId) => {
+        const isConfirm = window.confirm("Apakah Anda yakin ingin membatalkan pesanan ini?");
+        if (!isConfirm) return;
+
+        try {
+            await api.post(`/orders/${orderId}/cancel`);
+            alert("Pesanan berhasil dibatalkan!");
+            fetchOrders();
+        } catch (error) {
+            console.error("Gagal membatalkan pesanan", error);
+            alert("Gagal membatalkan pesanan")
         }
     };
 
@@ -106,11 +127,18 @@ const Transactions = () => {
                                     {/* Tombol hanya muncul jika Pending, tapi tidak menggeser layout kolom */}
                                     <div className="h-10 w-full flex justify-end">
                                         {order.status === 'pending' ? (
-                                            <button 
-                                                onClick={() => handlePay(order.snap_token)}
-                                                className="bg-blue-600 text-white text-sm px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition shadow-sm hover:shadow-md w-full md:w-auto">
-                                                Bayar Sekarang
-                                            </button>
+                                            <div>
+                                                <button 
+                                                    onClick={() => handleCancel(order.order_id)}
+                                                    className="bg-red-100 text-red-500 text-sm px-6 py-2 rounded-lg font-semibold hover:bg-red-200 transition shadow-sm hover:shadow-md w-full md:w-auto">
+                                                    Batalkan
+                                                </button>
+                                                <button 
+                                                    onClick={() => handlePay(order.snap_token)}
+                                                    className="bg-blue-600 text-white text-sm px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition shadow-sm hover:shadow-md w-full md:w-auto">
+                                                    Bayar Sekarang
+                                                </button>
+                                            </div>
                                         ) : order.status === 'cancelled' ? (
                                             <span className="text-red-500 text-sm font-semibold flex items-center">
                                                 Pesanan Dibatalkan

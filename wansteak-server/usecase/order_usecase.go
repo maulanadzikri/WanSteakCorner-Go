@@ -14,13 +14,15 @@ import (
 	"wansteak-server/repository"
 
 	"github.com/midtrans/midtrans-go"
+	"github.com/midtrans/midtrans-go/coreapi"
 	"github.com/midtrans/midtrans-go/snap"
 )
 
 type OrderUsecase interface {
 	PlaceOrder(input models.CreateOrderInput) (models.Order, error)
 	PaymentNotification(input models.MidtransNotificationInput) error
-	GetOrder(id string) (models.Order, error)
+	GetOrder(orderId string) (models.Order, error)
+	CancelOrder(orderId string) error
 }
 
 type orderUsecase struct {
@@ -184,6 +186,30 @@ func (u *orderUsecase) GetOrder(orderId string) (models.Order, error) {
 	}
 
 	return order, nil
+}
+
+func (u *orderUsecase) CancelOrder(orderId string) error {
+	order, err := u.orderRepo.FindByID(orderId)
+	if err != nil {
+		return err
+	}
+	if order.Status != "pending"{
+		return fmt.Errorf("hanya pesanan pending yang bisa dibatalkan.")
+	}
+
+	var client coreapi.Client
+	serverKey := os.Getenv("MIDTRANS_SERVER_KEY")
+	client.New(serverKey, midtrans.Sandbox)
+
+	cancelResp, midErr := client.CancelTransaction((orderId))
+	if midErr != nil {
+		log.Printf("[WARNING] Gagal cancel di Midtrans (mungkin belum aktif): %v", midErr )
+	} else {
+		log.Printf("[INFO] Berhasil cancel di Midtrans: %s", cancelResp.StatusMessage)
+	}
+
+	err = u.orderRepo.UpdateStatus(orderId, "cancelled")
+	return err
 }
 
 func (u *orderUsecase) checkMidtransStatus(order models.Order) (string, error) {
