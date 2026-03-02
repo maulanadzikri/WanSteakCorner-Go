@@ -8,7 +8,7 @@ import (
 
 type OrderRepository interface {
 	Save(order models.Order) error
-	UpdateStatus(orderId string, status string) error
+	UpdateStatus(orderId string, newStatus string) error
 	FindByID(orderId string) (models.Order, error)
 }
 
@@ -24,8 +24,8 @@ func (r *orderRepo) Save(order models.Order) error{
 	return r.db.Create(&order).Error
 }
 
-func (r *orderRepo) UpdateStatus(orderId string, status string) error{
-	return r.db.Model(&models.Order{}).Where("id = ?", orderId).Update("status", status).Error
+func (r *orderRepo) UpdateStatus(orderId string, newStatus string) error{
+	return r.db.Model(&models.Order{}).Where("id = ?", orderId).Update("status", newStatus).Error
 }
 
 func (r *orderRepo) FindByID(id string) (models.Order, error) {

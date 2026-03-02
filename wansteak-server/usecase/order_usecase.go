@@ -1,7 +1,12 @@
 package usecase
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -19,8 +24,15 @@ type OrderUsecase interface {
 }
 
 type orderUsecase struct {
-	menuRepo repository.MenuRepository
+	menuRepo  repository.MenuRepository
 	orderRepo repository.OrderRepository
+}
+
+type MidtransStatusResponse struct {
+	StatusCode        string `json:"status_code"`      
+	StatusMessage     string `json:"status_message"`
+	TransactionStatus string `json:"transaction_status`
+	FraudStatus       string `json:"fraud_status`
 }
 
 func NewOrderUsecase(m repository.MenuRepository, o repository.OrderRepository) OrderUsecase {
@@ -135,6 +147,104 @@ func (u *orderUsecase) PaymentNotification(input models.MidtransNotificationInpu
 	return u.orderRepo.UpdateStatus(orderID, newStatus)
 }
 
-func (u *orderUsecase) GetOrder(id string) (models.Order, error) {
-	return u.orderRepo.FindByID(id)
+func (u *orderUsecase) GetOrder(orderId string) (models.Order, error) {
+	order, err := u.orderRepo.FindByID(orderId)
+	if err != nil {
+		return order, err
+	}
+
+	// AUTO-SYNC ORDER STATUS LOGIC
+	if order.Status == "pending" {
+		log.Printf("[AUTO-SYNC] Mengecek status Midtrans untuk Order ID: %s", orderId)
+
+		midtransStatus, err := u.checkMidtransStatus(order)
+		if err != nil {
+			log.Printf("[AUTO-SYNC ERROR] Gagal cek status untuk %s: %v", orderId, err)
+		} else {
+			log.Printf("[AUTO-SYNC SUCCESS] Status dari Midtrans untuk %s adalah: '%s'", orderId, midtransStatus)
+		}
+
+		// if the check is successful and the status has CHANGED (not pending anymore)
+		if err == nil && midtransStatus != "" && midtransStatus != "pending" {
+			u.orderRepo.UpdateStatus(orderId, midtransStatus) // update order status in local database
+			order.Status = midtransStatus                     //
+		}
+	}
+
+	return order, nil
+}
+
+func (u *orderUsecase) checkMidtransStatus(order models.Order) (string, error) {
+	orderId := order.ID
+	serverKey := os.Getenv("MIDTRANS_SERVER_KEY")
+	if serverKey == "" {
+		return "", fmt.Errorf("MIDTRANS_SERVER_KEY kosong")
+	}
+
+	url := "https://api.sandbox.midtrans.com/v2/" + orderId + "/status"
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", fmt.Errorf("gagal membuat HTTP request: %v", err)
+	}
+
+	authString := base64.StdEncoding.EncodeToString([]byte(serverKey + ":"))
+	req.Header.Add("Authorization", "Basic "+authString)
+	req.Header.Add("Accept", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("gagal menembak API Midtrans: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Baca body dari response
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	
+	// Pastikan status HTTP tidak bernilai 401 Unauthorized, dsb
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != 404 {
+	    return "", fmt.Errorf("HTTP status %d: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	var res MidtransStatusResponse
+	if err := json.Unmarshal(bodyBytes, &res); err != nil {
+		return "", fmt.Errorf("gagal decode JSON Midtrans: %v", err)
+	}
+
+	// INFO FOR DEBUGGING
+	// log.Println("==================================================")
+	// log.Printf("[AUTO-SYNC DEBUG] Mengecek Order ID: %s", orderId)
+	// log.Printf("[AUTO-SYNC DEBUG] RAW JSON: %s", string(bodyBytes))
+	// log.Printf("[AUTO-SYNC DEBUG] Extracted Transaction Status: '%s'", res.TransactionStatus)
+	// log.Printf("[AUTO-SYNC DEBUG] Extracted Status Code: '%s'", res.StatusCode)
+	// log.Println("==================================================")
+
+	// TANGANI KASUS "TRANSACTION DOESN'T EXIST" (Status Code 404 di dalam JSON Midtrans)
+	if res.StatusCode == "404" {
+		duration := time.Since(order.CreatedAt).Hours()
+
+		if duration > 24 {
+			log.Printf("[INFO] Transaksi %s (404) berumur %.2f jam. Otomatis EXPIRED.", orderId, duration)
+			return "expired", nil
+		}
+
+		log.Printf("[INFO] Transaksi %s belum aktif di Midtrans (menunggu pembayaran). Dianggap PENDING.", orderId)
+		return "pending", nil
+	}
+
+	// MAPPING STATUS SEPERTI BIASA
+	var newStatus string
+	if res.TransactionStatus == "capture" || res.TransactionStatus == "settlement" {
+		newStatus = "paid"
+	} else if res.TransactionStatus == "expire" {
+		newStatus = "expired"
+	} else if res.TransactionStatus == "cancel" || res.TransactionStatus == "deny" {
+		newStatus = "cancelled"
+	} else if res.TransactionStatus == "pending" {
+		newStatus = "pending"
+	} else {
+		return "", fmt.Errorf("status tidak dikenali: %s", res.TransactionStatus)
+	}
+
+	return newStatus, nil
 }
