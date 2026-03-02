@@ -112,13 +112,25 @@ func (u *orderUsecase) createMidtransTransaction(orderID string, grossAmount int
 			GrossAmt: grossAmount,
 		},
 		Items: &midtransItems,
+		EnabledPayments: []snap.SnapPaymentType{
+			snap.PaymentTypeBCAVA,
+			snap.PaymentTypeBNIVA,
+			snap.PaymentTypeGopay,
+			snap.PaymentTypeShopeepay,
+			snap.SnapPaymentType("other_qris"),
+			snap.SnapPaymentType("dana"),
+		},
+		Expiry: &snap.ExpiryDetails{
+			Unit: "minutes",
+			Duration: 30,
+		},
 	}
-	resp, err := s.CreateTransaction(req)
+	snapResp, err := s.CreateTransaction(req)
 	if err != nil {
 		return nil, err
 	}
 
-	return resp, nil
+	return snapResp, nil
 }
 
 func (u *orderUsecase) PaymentNotification(input models.MidtransNotificationInput) error {
@@ -221,9 +233,9 @@ func (u *orderUsecase) checkMidtransStatus(order models.Order) (string, error) {
 
 	// TANGANI KASUS "TRANSACTION DOESN'T EXIST" (Status Code 404 di dalam JSON Midtrans)
 	if res.StatusCode == "404" {
-		duration := time.Since(order.CreatedAt).Hours()
+		duration := time.Since(order.CreatedAt).Minutes()
 
-		if duration > 24 {
+		if duration > 31 {
 			log.Printf("[INFO] Transaksi %s (404) berumur %.2f jam. Otomatis EXPIRED.", orderId, duration)
 			return "expired", nil
 		}
