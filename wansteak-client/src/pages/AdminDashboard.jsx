@@ -112,15 +112,6 @@ const AdminDashboard = () => {
 
     return (
         <div className="min-h-screen bg-gray-100 p-6 font-sans">
-            {/* Header Dashboard */}
-            <div className="max-w-6xl mx-auto flex justify-between items-center bg-white p-4 rounded-lg shadow mb-6">
-                <h1 className="text-2xl font-bold text-gray-800">Manajemen Menu</h1>
-                <button 
-                    onClick={handleLogout}
-                    className="flex items-center gap-2 bg-red-100 text-red-600 px-4 py-2 rounded font-semibold hover:bg-red-200 transition">
-                    <FaSignOutAlt /> Logout
-                </button>
-            </div>
             
             {/* Tabel Konten */}
             <div className="max-w-6xl mx-auto bg-white rounded-lg shadow overflow-hidden">
