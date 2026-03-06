@@ -21,7 +21,9 @@ import (
 type OrderUsecase interface {
 	PlaceOrder(input models.CreateOrderInput) (models.Order, error)
 	PaymentNotification(input models.MidtransNotificationInput) error
+	GetAllOrders() ([]models.Order, error)
 	GetOrder(orderId string) (models.Order, error)
+	UpdateOrderStatus(orderId, newStatus string) error
 	CancelOrder(orderId string) error
 }
 
@@ -161,6 +163,10 @@ func (u *orderUsecase) PaymentNotification(input models.MidtransNotificationInpu
 	return u.orderRepo.UpdateStatus(orderID, newStatus)
 }
 
+func (u *orderUsecase) GetAllOrders() ([]models.Order, error) {
+	return u.orderRepo.FindAll()
+}
+
 func (u *orderUsecase) GetOrder(orderId string) (models.Order, error) {
 	order, err := u.orderRepo.FindByID(orderId)
 	if err != nil {
@@ -186,6 +192,10 @@ func (u *orderUsecase) GetOrder(orderId string) (models.Order, error) {
 	}
 
 	return order, nil
+}
+
+func (u *orderUsecase) UpdateOrderStatus(orderId, newStatus string) error {
+	return u.orderRepo.UpdateStatus(orderId, newStatus)
 }
 
 func (u *orderUsecase) CancelOrder(orderId string) error {

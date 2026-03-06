@@ -5,6 +5,7 @@ import Transactions from './pages/Transactions';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLayout from './components/AdminLayout';
+import AdminOrders from './pages/AdminOrders';
 
 function App() {
   return (
@@ -16,7 +17,7 @@ function App() {
 
         <Route path='/admin' element={<AdminLayout />}>
           <Route path="/admin/dashboard" element={<AdminDashboard />}/>
-          <Route path="/admin/orders" element={<AdminDashboard />}/>
+          <Route path="/admin/orders" element={<AdminOrders />}/>
           <Route path="/admin/history" element={<AdminDashboard />}/>
 
         </Route>

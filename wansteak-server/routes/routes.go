@@ -18,7 +18,7 @@ func SetupRouter(
 	r.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 
 		if c.Request.Method == "OPTIONS" {
@@ -34,8 +34,10 @@ func SetupRouter(
 
 		api.GET("/menu", menuController.GetAll)
 		api.POST("/orders", orderController.Create)
+		api.GET("/orders", orderController.GetAllOrders)
 		api.GET("/orders/:id", orderController.GetOrder)
 		api.POST("/orders/:id/cancel", orderController.CancelOrder)
+		api.PATCH("/orders/:id/status", orderController.UpdateOrderStatus)
 		api.POST("/webhook", orderController.HandleWebhook)
 
 		auth := api.Group("/auth")

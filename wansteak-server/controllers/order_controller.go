@@ -53,6 +53,36 @@ func (c *OrderController) HandleWebhook(ctx *gin.Context){
 	ctx.JSON(http.StatusOK, gin.H{"message": "Notification received"})
 }
 
+func (c *OrderController) GetAllOrders(ctx *gin.Context){
+	orders, err := c.orderUsecase.GetAllOrders()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data pesanan"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": orders})
+}
+
+func (c *OrderController) UpdateOrderStatus(ctx *gin.Context){
+	orderId := ctx.Param("id")
+
+	var input struct {
+		Status string `json:"status"`
+	}
+
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "format data tidak valid"})
+		return
+	}
+
+	err := c.orderUsecase.UpdateOrderStatus(orderId, input.Status)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memperbarui status pesanan"})
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Berhasil memperbarui status pesanan"})
+}
+
 func (c *OrderController) GetOrder(ctx *gin.Context){
 	id := ctx.Param("id")
 	order, err := c.orderUsecase.GetOrder(id)
