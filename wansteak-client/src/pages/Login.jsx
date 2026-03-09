@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const Login = () => {
     const [email, setEmail] = useState("");
@@ -27,7 +28,7 @@ const Login = () => {
             localStorage.setItem('admin_token', token);
 
             // 4. Redirect ke Dashboard Admin
-            alert("Login Berhasil!");
+            toast.success("Login Berhasil!");
             navigate("/admin/dashboard");
         } catch (err) {
             console.error(err);

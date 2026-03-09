@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import api from '../services/api';
 import Navbar from '../components/Navbar';
+import toast from 'react-hot-toast';
 
 const Transactions = () => {
     const [orders, setOrders] = useState([]);
@@ -47,11 +48,11 @@ const Transactions = () => {
 
         try {
             await api.post(`/orders/${orderId}/cancel`);
-            alert("Pesanan berhasil dibatalkan!");
+            toast.success("Pesanan berhasil dibatalkan!");
             fetchOrders();
         } catch (error) {
             console.error("Gagal membatalkan pesanan", error);
-            alert("Gagal membatalkan pesanan")
+            toast.error("Gagal membatalkan pesanan")
         }
     };
 

@@ -2,6 +2,7 @@ import React from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { FaSignOutAlt } from "react-icons/fa";
 import { MdNotifications, MdRestaurantMenu, MdHistory } from "react-icons/md";
+import toast from "react-hot-toast";
 
 const AdminLayout = () => {
     const location = useLocation();
@@ -10,7 +11,7 @@ const AdminLayout = () => {
     const handleLogout = () => {
         // Remove token and redirect to login
         localStorage.removeItem("admin_token");
-        alert("Berhasil logout")
+        toast.success("Berhasil logout")
         navigate("/login");
     };
 

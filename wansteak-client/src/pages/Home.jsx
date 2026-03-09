@@ -3,6 +3,8 @@ import api from '../services/api';
 import Navbar from '../components/Navbar';
 import MenuCard from '../components/MenuCard';
 import { FaTrash, FaTimes } from 'react-icons/fa';
+import toast from 'react-hot-toast';
+import { MdAccessTime, MdWarningAmber } from 'react-icons/md';
 
 const Home = () => {
   const [menus, setMenus] = useState([]);
@@ -48,7 +50,7 @@ const Home = () => {
   // 3. Logic Checkout (Connect ke Midtrans)
   const handleCheckout = async () => {
     if (!customerName || cart.length === 0) {
-      alert("Nama pelanggan dan keranjang tidak boleh kosong!");
+      toast.error("Nama pelanggan dan keranjang tidak boleh kosong!");
       return;
     }
 
@@ -83,28 +85,32 @@ const Home = () => {
       if (window.snap) {
         window.snap.pay(snap_token, {
           onSuccess: function(result) {
-            alert("Pembayaran Berhasil!");
+            toast.success("Pembayaran Berhasil!");
             setCart([]);
             setCustomerName("");
             setShowCart(false);
             console.log(result);
           },
           onPending: function(result) {
-            alert("Menunggu Pembayaran...");
+            toast("Menunggu Pembayaran...", {
+              icon: <MdAccessTime className="text-yellow-500 text-xl" />
+            });
             console.log(result);
           },
           onError: function(result) {
-            alert("Pembayaran Gagal!");
+            toast.error("Pembayaran Gagal!");
             console.log(result);
           },
           onClose: function() {
-            alert('Anda menutup popup tanpa menyelesaikan pembayaran');
+            toast("Anda menutup popup tanpa menyelesaikan pembayaran", {
+              icon: <MdWarningAmber className="text-orange-500 text-xl" />
+            });
           }
         });
       }
     } catch (error) {
       console.error("Checkout Error:", error);
-      alert("Gagal memproses pesanan.");
+      toast("Gagal memproses pesanan.");
     } finally {
       setIsLoading(false);
     }

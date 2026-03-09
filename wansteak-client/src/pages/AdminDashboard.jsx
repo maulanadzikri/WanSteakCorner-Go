@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from '../services/api';
 import { FaEdit, FaTrash, FaPlus, FaSignOutAlt } from 'react-icons/fa';
+import toast from "react-hot-toast";
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -46,10 +47,10 @@ const AdminDashboard = () => {
         try {
             await api.delete(`/menu/${id}`);
             fetchMenus(); // refresh table
-            alert("Menu berhasil dihapus!");
+            toast.success("Menu berhasil dihapus!");
         } catch (error) {
             console.error("Gagal menghapus", error);
-            alert("Gagal menghapus menu.");
+            toast.error("Gagal menghapus menu.");
         }
     };
 
@@ -66,18 +67,18 @@ const AdminDashboard = () => {
             if (isEdit) {
                 // Process Edit (PUT)
                 await api.put(`/menu/${editId}`, payload);
-                alert("Menu berhasil diupdate!");
+                toast.success("Menu berhasil diupdate!");
             } else {
                 // Process Add (POST)
                 await api.post('/menu', payload);
-                alert("Menu berhasil ditambahkan!");
+                toast.success("Menu berhasil ditambahkan!");
             }
 
             setShowModal(false); // Close Modal
             fetchMenus(); // Refresh table
         } catch (error) {
             console.error("Gagal simpan data", error);
-            alert("Gagal menyimpan menu. Cek console untuk detail.");
+            toast.error("Gagal menyimpan menu.");
         }
     };
 

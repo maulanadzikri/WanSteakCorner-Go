@@ -7,10 +7,12 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminLayout from './components/AdminLayout';
 import AdminOrders from './pages/AdminOrders';
 import AdminHistory from './pages/AdminHistory';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
     <BrowserRouter>
+      <Toaster position='top-right' reverseOrder={false} />
       <Routes>
         <Route path="/" element={<Home />}/>
         <Route path="/transactions" element={<Transactions />}/>

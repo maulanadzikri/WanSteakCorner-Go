@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from '../services/api'
+import toast from "react-hot-toast";
 
 const AdminOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -34,10 +35,11 @@ const AdminOrders = () => {
     const handleUpdateStatus = async (orderId, newOrderStatus) => {
         try {
             await api.patch(`/orders/${orderId}/status`, { status: newOrderStatus });
+            toast.success("Status pesanan berhasil diperbarui")
             fetchAllOrders();
         } catch (error) {
             console.error("Gagal update status: ", error);
-            alert("Gagal memperbarui status pesanan.");
+            toast.error("Gagal memperbarui status pesanan.");
         }
     };
 
