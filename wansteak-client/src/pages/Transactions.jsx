@@ -105,7 +105,7 @@ const Transactions = () => {
                                                     {item.quantity}x {item.menu_name}
                                                 </span>
                                                 <span className="font-medium text-gray-500">
-                                                    Rp {item.sub_total?.toLocaleString()}
+                                                    Rp {item.sub_total?.toLocaleString('id-ID')}
                                                 </span>
                                             </li>
                                         ))}
@@ -121,7 +121,7 @@ const Transactions = () => {
                                 <div className="md:col-span-3 flex flex-col items-end justify-center text-right h-full">
                                     <p className="text-xs text-gray-400 mb-1">Total Pembayaran</p>
                                     <p className="text-xl font-bold text-red-600 mb-3">
-                                        Rp {order.total?.toLocaleString()}
+                                        Rp {order.total?.toLocaleString('id-ID')}
                                     </p>
                                     
                                     {/* Tombol hanya muncul jika Pending, tapi tidak menggeser layout kolom */}

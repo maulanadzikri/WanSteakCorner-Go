@@ -143,7 +143,7 @@ const AdminDashboard = () => {
                                     </td>
                                     <td className="p-4 font-medium">{menu.name}</td>
                                     <td className="p-4 text-red-600 font-semibold">
-                                        Rp {menu.price.toLocaleString()}
+                                        Rp {menu.price.toLocaleString('id-ID')}
                                     </td>
                                     <td className="p-4">
                                         <span className={`px-3 py-1 text-xs rounded-full font-bold ${
