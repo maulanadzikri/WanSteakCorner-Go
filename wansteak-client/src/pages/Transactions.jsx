@@ -55,6 +55,18 @@ const Transactions = () => {
         }
     };
 
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'paid': return <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">Sudah Dibayar</span>;
+            case 'processing': return <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold">Sedang Dimasak</span>;
+            case 'completed': return <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">Selesai</span>;
+            case 'pending': return <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold">Menunggu Pembayaran</span>;
+            case 'cancelled': return <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Dibatalkan</span>;
+            case 'expired': return <span className="bg-gray-200 text-gray-500 px-3 py-1 rounded-full text-xs font-bold">Kedaluwarsa</span>;
+            default: return <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold">{status}</span>;
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar cartCount={0} setShowCart={() => {}} />
@@ -72,16 +84,7 @@ const Transactions = () => {
                                     <p className="text-xs text-gray-400 font-medium">Order ID</p>
                                     <div className="flex items-center gap-2">
                                         <h3 className="font-bold text-gray-800 text-sm">{order.order_id}</h3>
-                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase ${
-                                            order.status === 'paid' ? 'bg-green-100 text-green-700' : 
-                                            order.status === 'pending' ? 'bg-orange-100 text-orange-700' : 
-                                            order.status === 'expired' ? 'bg-gray-100 text-graye-600' : 
-                                            'bg-red-100 text-red-700'
-                                        }`}>
-                                            {order.status === 'cancelled' ? 'CANCELLED' : 
-                                             order.status === 'expired' ? 'EXPIRED' : 
-                                             (order.status || 'unknown')}
-                                        </span>
+                                        <span className="p-4 uppercase">{getStatusBadge(order.status)}</span>
                                     </div>
                                     <p className="text-xs text-gray-400">
                                         {new Date(order.date || Date.now()).toLocaleString('id-ID', {
