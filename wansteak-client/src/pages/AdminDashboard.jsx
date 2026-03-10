@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from '../services/api';
-import { FaEdit, FaTrash, FaPlus, FaSignOutAlt } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaSignOutAlt, FaSpinner } from 'react-icons/fa';
 import toast from "react-hot-toast";
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const [menus, setMenus] = useState([]);
+    const [loading, setLoading] = useState(true)
 
     // State for Modal Form
     const [showModal, setShowModal] = useState(false);
@@ -34,11 +35,14 @@ const AdminDashboard = () => {
     // --- API FUNCTION (READ, CREATE, UPDATE, DELETE) ---
     const fetchMenus = async () => {
         try {
+            setLoading(true);
             const response = await api.get('/menu');
             setMenus(response.data.data || []);
         } catch (error) {
             console.error("Gagal mengambil data menu", error);
             if (error.response?.status === 401) handleLogout(); // if token expired, force logout
+        } finally {
+            setLoading(false)
         }
     }; 
 
@@ -110,6 +114,15 @@ const AdminDashboard = () => {
     const handleFormChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20">
+                <FaSpinner className="animate-spin text-4xl text-red-500 mb-4" />
+                <p className="text-gray-500 font-medium animate-pulse">Memuat data menu...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-100 p-6 font-sans">

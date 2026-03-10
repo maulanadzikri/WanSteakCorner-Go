@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import api from '../services/api';
 import Navbar from '../components/Navbar';
 import toast from 'react-hot-toast';
+import { FaSpinner } from 'react-icons/fa';
 
 const Transactions = () => {
     const [orders, setOrders] = useState([]);
@@ -67,6 +68,15 @@ const Transactions = () => {
             default: return <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold">{status}</span>;
         }
     };
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20">
+                <FaSpinner className="animate-spin text-4xl text-red-500 mb-4" />
+                <p className="text-gray-500 font-medium animate-pulse">Memuat riwayat pesanan...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50">

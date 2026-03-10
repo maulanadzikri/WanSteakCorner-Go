@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import Navbar from '../components/Navbar';
 import MenuCard from '../components/MenuCard';
-import { FaTrash, FaTimes } from 'react-icons/fa';
+import { FaTrash, FaTimes, FaSpinner } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { MdAccessTime, MdWarningAmber } from 'react-icons/md';
 
@@ -12,6 +12,7 @@ const Home = () => {
   const [showCart, setShowCart] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // 1. Fetch Menu dari Backend saat loading awal
   useEffect(() => {
@@ -20,10 +21,13 @@ const Home = () => {
 
   const fetchMenus = async () => {
     try {
+      setLoading(true);
       const response = await api.get('/menu');
       setMenus(response.data.data);
     } catch (error) {
       console.error("Gagal mengambil menu:", error);
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -116,6 +120,15 @@ const Home = () => {
     }
   };
 
+  if (loading) {
+      return (
+          <div className="flex flex-col items-center justify-center py-20">
+              <FaSpinner className="animate-spin text-4xl text-red-500 mb-4" />
+              <p className="text-gray-500 font-medium animate-pulse">Memuat menu...</p>
+          </div>
+      );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar cartCount={cart.reduce((a, b) => a + b.qty, 0)} setShowCart={setShowCart} />
@@ -189,11 +202,20 @@ const Home = () => {
                         <button
                             onClick={handleCheckout}
                             disabled={isLoading}
-                            className={`w-full py-3 rounded text-white font-bold text-lg ${
-                                isLoading ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
+                            className={`w-full py-3 rounded-lg text-white font-bold text-lg flex items-center justify-center transition-all ${
+                                isLoading 
+                                ? 'bg-gray-400 cursor-not-allowed' 
+                                : 'bg-green-600 hover:bg-green-700 shadow-md hover:shadow-lg'
                             }`}
                         >
-                            {isLoading ? 'Memproses...' : 'BAYAR SEKARANG'}
+                            {isLoading ? (
+                              <>
+                                <FaSpinner className="animate-spin text-xl mr-2" />
+                                <span>Memproses pembayaran...</span>
+                              </>
+                            ) : (
+                              <span>Bayar Sekarang</span>
+                            )}
                         </button>
                     </div>
                 </>

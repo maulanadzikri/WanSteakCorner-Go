@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../services/api"
+import { FaSpinner } from "react-icons/fa";
+
 
 const AdminHistory = () => {
     const [orders, setOrders] = useState([]);
@@ -57,7 +59,14 @@ const AdminHistory = () => {
         ? orders
         : orders.filter(orders => orders.status === filterStatus);
     
-    if (loading && orders.length === 0) return <div className="text-center py-10 font-medium">Memuat riwayat transaksi...</div>
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20">
+                <FaSpinner className="animate-spin text-4xl text-red-500 mb-4" />
+                <p className="text-gray-500 font-medium animate-pulse">Memuat riwayat transaksi...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">

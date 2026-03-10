@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
 import api from '../services/api'
 import toast from "react-hot-toast";
+import { FaSpinner } from "react-icons/fa";
 
 const AdminOrders = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
 
-    const fetchAllOrders = async () => {
+    const fetchAllOrders = async (isBackground = false) => {
         try {
-            setLoading(true);
+            if (!isBackground) {
+                setLoading(true);
+            }
 
             const response = await api.get('/orders');
             const sortedOrders = (response.data.data || response.data).sort((a, b) => 
@@ -19,16 +22,21 @@ const AdminOrders = () => {
             setOrders(sortedOrders);
         } catch (error) {
             console.error("Gagal mengambil data pesanan: ", error);
+            if (!isBackground) toast.error("Gagal memuat pesanan")
         } finally {
-            setLoading(false);
+            if (!isBackground) {
+                setLoading(false);
+            }
         }
     };
 
     useEffect(() => {
-        fetchAllOrders();
+        fetchAllOrders(false);
 
         // Interval refresh data order per 10s
-        const interval = setInterval(fetchAllOrders, 10000);
+        const interval = setInterval(() => {
+            fetchAllOrders(true);
+        }, 10000);
         return () => clearInterval(interval);
     }, []);
 
@@ -55,7 +63,14 @@ const AdminOrders = () => {
         }
     };
 
-    if (loading && orders.length === 0) return <div className="text-center py-10">Memuat pesanan...</div>;
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20">
+                <FaSpinner className="animate-spin text-4xl text-red-500 mb-4" />
+                <p className="text-gray-500 font-medium animate-pulse">Memuat data pesanan...</p>
+            </div>
+        );
+    }
 
     // Ensure data items are in array form
     const parseItems = (items) => {
