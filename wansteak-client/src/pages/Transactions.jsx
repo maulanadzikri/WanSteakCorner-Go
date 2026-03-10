@@ -3,10 +3,12 @@ import api from '../services/api';
 import Navbar from '../components/Navbar';
 import toast from 'react-hot-toast';
 import { FaSpinner } from 'react-icons/fa';
+import ConfirmModal from '../components/ConfirmModal';
 
 const Transactions = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [cancelOrder, setCancelOrder] = useState(null);
 
     const fetchOrders = async () => {
         // 1. ambil data dari local storage
@@ -43,17 +45,22 @@ const Transactions = () => {
         }
     };
 
-    const handleCancel = async (orderId) => {
-        const isConfirm = window.confirm("Apakah Anda yakin ingin membatalkan pesanan ini?");
-        if (!isConfirm) return;
+    const triggerCancel = (orderId) => {
+        setCancelOrder(orderId);
+    };
+
+    const confirmCancel = async () => {
+        if (!cancelOrder) return;
 
         try {
-            await api.post(`/orders/${orderId}/cancel`);
+            await api.post(`/orders/${cancelOrder}/cancel`);
             toast.success("Pesanan berhasil dibatalkan!");
             fetchOrders();
         } catch (error) {
             console.error("Gagal membatalkan pesanan", error);
             toast.error("Gagal membatalkan pesanan")
+        } finally {
+            setCancelOrder(null);
         }
     };
 
@@ -143,7 +150,7 @@ const Transactions = () => {
                                         {order.status === 'pending' ? (
                                             <div>
                                                 <button 
-                                                    onClick={() => handleCancel(order.order_id)}
+                                                    onClick={() => triggerCancel(order.order_id)}
                                                     className="bg-red-100 text-red-500 text-sm px-6 py-2 rounded-lg font-semibold hover:bg-red-200 transition shadow-sm hover:shadow-md w-full md:w-auto">
                                                     Batalkan
                                                 </button>
@@ -178,6 +185,15 @@ const Transactions = () => {
                     )}
                 </div>
             </div>
+
+            <ConfirmModal 
+                isOpen={!!cancelOrder}
+                title="Batalkan pesanan ini?"
+                message=""
+                onConfirm={confirmCancel}
+                onCancel={() => setCancelOrder(null)}
+                confirmText="Ya, Batalkan"
+            />
         </div>
     );
 };

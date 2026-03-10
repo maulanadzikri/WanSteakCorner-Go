@@ -1,14 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { FaSignOutAlt } from "react-icons/fa";
 import { MdNotifications, MdRestaurantMenu, MdHistory } from "react-icons/md";
 import toast from "react-hot-toast";
+import ConfirmModal from "./ConfirmModal";
 
 const AdminLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-    const handleLogout = () => {
+    const triggerLogout = () => {
+        setShowLogoutModal(true);
+    };
+
+    const confirmLogout = () => {
+        setShowLogoutModal(false);
         // Remove token and redirect to login
         localStorage.removeItem("admin_token");
         toast.success("Berhasil logout")
@@ -57,7 +64,7 @@ const AdminLayout = () => {
                 <header className="bg-white border-b border-gray-200 px-8 py-5 flex justify-between items-center shadow-sm z-50">
                     <h1 className="text-2xl font-bold text-gray-800">{pageTitle}</h1>
                     <button 
-                        onClick={handleLogout}
+                        onClick={triggerLogout}
                         className="flex items-center gap-2 bg-red-100 text-red-600 px-4 py-2 rounded font-semibold hover:bg-red-200 transition">
                         <FaSignOutAlt /> Logout
                     </button>
@@ -69,6 +76,14 @@ const AdminLayout = () => {
                 </main>
             </div>
 
+            <ConfirmModal 
+                isOpen={showLogoutModal}
+                title="Keluar dari Admin?"
+                message="Sesi Anda akan diakhiri dan Anda harus login kembali untuk masuk."
+                onConfirm={confirmLogout}
+                onCancel={() => setShowLogoutModal(false)}
+                confirmText="Ya, Keluar"
+            />
         </div>
     )
 

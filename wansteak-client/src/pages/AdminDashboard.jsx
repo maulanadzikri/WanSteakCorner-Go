@@ -3,11 +3,14 @@ import { useNavigate } from "react-router-dom";
 import api from '../services/api';
 import { FaEdit, FaTrash, FaPlus, FaSignOutAlt, FaSpinner } from 'react-icons/fa';
 import toast from "react-hot-toast";
+import ConfirmModal from "../components/ConfirmModal";
+
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const [menus, setMenus] = useState([]);
     const [loading, setLoading] = useState(true)
+    const [menuToDelete, setMenuToDelete] = useState(null)
 
     // State for Modal Form
     const [showModal, setShowModal] = useState(false);
@@ -46,15 +49,22 @@ const AdminDashboard = () => {
         }
     }; 
 
-    const handleDelete = async (id) => {
-        if (!window.confirm("Yakin ingin menghapus menu ini?")) return;
+    const triggerDelete = (id) => {
+        setMenuToDelete(id);
+    };
+
+    const confirmDelete = async () => {
+        if (!menuToDelete) return;
+
         try {
-            await api.delete(`/menu/${id}`);
+            await api.delete(`/menu/${menuToDelete}`)   ;
             fetchMenus(); // refresh table
             toast.success("Menu berhasil dihapus!");
         } catch (error) {
             console.error("Gagal menghapus", error);
             toast.error("Gagal menghapus menu.");
+        } finally {
+            setMenuToDelete(null);
         }
     };
 
@@ -168,10 +178,18 @@ const AdminDashboard = () => {
                                     </td>
                                     <td className="p-4">
                                         <div className="flex items-center justify-center gap-3">
-                                            <button onClick={() => openEditModal(menu)} className="text-blue-500 hover:text-blue-700 p-2 bg-blue-50 rounded-full transition" title="Edit">
+                                            <button 
+                                                onClick={() => openEditModal(menu)} 
+                                                className="text-blue-500 hover:text-blue-700 p-2 bg-blue-50 rounded-full transition" 
+                                                title="Edit"
+                                            >
                                                 <FaEdit size={18} />
                                             </button>
-                                            <button onClick={() => handleDelete(menu.id)} className="text-red-500 hover:text-red-700 p-2 bg-red-50 rounded-full transition" title="Hapus">
+                                            <button 
+                                                onClick={() => triggerDelete(menu.id)} 
+                                                className="text-red-500 hover:text-red-700 p-2 bg-red-50 rounded-full transition" 
+                                                title="Hapus"
+                                            >
                                                 <FaTrash size={18} />
                                             </button>
                                         </div>
@@ -246,6 +264,15 @@ const AdminDashboard = () => {
                     </div>
                 </div>
             )}
+
+            <ConfirmModal 
+                isOpen={!!menuToDelete}
+                title="Hapus menu ini?"
+                message="Data menu yang dihapus tidak dapat dikembalikan."
+                onConfirm={confirmDelete}
+                onCancel={() => setMenuToDelete(null)}
+                confirmText="Ya, Hapus"
+            />
         </div>
     );
 };
