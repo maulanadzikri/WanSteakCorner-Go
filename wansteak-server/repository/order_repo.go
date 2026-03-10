@@ -9,7 +9,7 @@ import (
 type OrderRepository interface {
 	Save(order models.Order) error
 	UpdateStatus(orderId string, newStatus string) error
-	FindAll() ([]models.Order, error)
+	FindAll(limit, offset int, status string) ([]models.Order, int64, error)
 	FindByID(orderId string) (models.Order, error)
 }
 
@@ -29,11 +29,27 @@ func (r *orderRepo) UpdateStatus(orderId string, newStatus string) error {
 	return r.db.Model(&models.Order{}).Where("id = ?", orderId).Update("status", newStatus).Error
 }
 
-func (r *orderRepo) FindAll() ([]models.Order, error) {
+func (r *orderRepo) FindAll(limit int, offset int, status string) ([]models.Order, int64, error) {
 	var orders []models.Order
-	// Mengambil semua order, diurutkan dari yang terbaru (created_at desc)
-	err := r.db.Preload("Items").Order("created_at desc").Find(&orders).Error
-	return orders, err
+	var total int64
+
+	query := r.db.Model(&models.Order{})
+	
+	if status != "" && status != "all" {
+		query = query.Where("status = ?", status)
+	}
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Mengambil semua order, diurutkan dari yang terbaru (created_at desc) dengan limit dan offset
+	err := query.Preload("Items").Order("created_at desc").Limit(limit).Offset(offset).Find(&orders).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	
+	return orders, total, err
 }
 
 func (r *orderRepo) FindByID(id string) (models.Order, error) {

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 	"wansteak-server/models"
 	"wansteak-server/usecase"
 
@@ -54,13 +55,23 @@ func (c *OrderController) HandleWebhook(ctx *gin.Context){
 }
 
 func (c *OrderController) GetAllOrders(ctx *gin.Context){
-	orders, err := c.orderUsecase.GetAllOrders()
+	pageStr := ctx.DefaultQuery("page", "1")
+	limitStr := ctx.DefaultQuery("limit", "10")
+	status := ctx.Query("status")
+
+	page, _ := strconv.Atoi(pageStr)
+	limit, _ := strconv.Atoi(limitStr)
+
+	orders, meta, err := c.orderUsecase.GetAllOrders(page, limit, status)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data pesanan"})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": orders})
+	ctx.JSON(http.StatusOK, gin.H{
+		"data": orders,
+		"meta": meta,
+	})
 }
 
 func (c *OrderController) UpdateOrderStatus(ctx *gin.Context){

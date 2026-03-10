@@ -9,17 +9,28 @@ const AdminHistory = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
+
+    // State for Pagination & Filter
     const [filterStatus, setFilterStatus] = useState('all');
+    const [page, setPage] = useState(1)
+    const [limit, setLimit] = useState(10)
+    const [totalPages, setTotalPages] = useState(1)
+    const [totalData, setTotalData] = useState(0)
 
     const fetchAllOrders = async () => {
         try {
             setLoading(true);
-            const response = await api.get("/orders");
+            const response = await api.get(`/orders?page=${page}&limit=${limit}&status=${filterStatus}`);
             const sortedOrders = (response.data.data || response.data).sort((a, b) => 
                 new Date(b.created_at) - new Date(a.created_at) 
             );
             setOrders(sortedOrders);
-        } catch (errror) {
+
+            if (response.data.meta) {
+                setTotalPages(response.data.meta.total_pages);
+                setTotalData(response.data.meta.total);
+            }
+        } catch (error) {
             console.error("Gagal mengambil riwayat transaksi:", error);
         } finally {
             setLoading(false);
@@ -28,7 +39,17 @@ const AdminHistory = () => {
 
     useEffect(() => {
         fetchAllOrders();
-    }, []);
+    }, [page, limit, filterStatus]);
+
+    const handleFilterChange = (e) => {
+        setFilterStatus(e.target.value);
+        setPage(1);
+    };
+
+    const handleLimitChange = (e) => {
+        setLimit(Number(e.target.value));
+        setPage(1);
+    };
 
     const parseItems = (items) => {
         if (!items) return [];
@@ -57,10 +78,6 @@ const AdminHistory = () => {
         }
     };
 
-    const filteredOrders = filterStatus === 'all'
-        ? orders
-        : orders.filter(orders => orders.status === filterStatus);
-    
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center py-20">
@@ -79,7 +96,7 @@ const AdminHistory = () => {
                     <label className="text-sm font-semibold text-gray-600">Filter Status:</label>
                     <select 
                         value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
+                        onChange={handleFilterChange}
                         className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
                     >
                         <option value="all">Semua Status</option>
@@ -106,7 +123,7 @@ const AdminHistory = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                        {filteredOrders.map((order) => (
+                        {orders.map((order) => (
                             <tr key={order.id} className="hover:bg-gray-50 transition">
                                 <td className="p-4">
                                     <div className="font-semibold text-gray-800">{order.id}</div>
@@ -129,7 +146,7 @@ const AdminHistory = () => {
                                 </td>
                             </tr>
                         ))}
-                        {filteredOrders.length === 0 && (
+                        {orders.length === 0 && (
                             <tr>
                                 <td colSpan="5" className="p-0">
                                     <EmptyState 
@@ -144,6 +161,45 @@ const AdminHistory = () => {
                 </table>
             </div>
 
+            {/* PAGINATION & LIMIT DATA */}
+            <div className="p-4 border-t border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="flex items-center gap-3">
+                    <span className="text-sm text-gray-600">Tampilkan</span>
+                    <select 
+                        value={limit}
+                        onChange={handleLimitChange}
+                        className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:border-red-500"
+                    >
+                        <option value={10}>10</option>
+                        <option value={20}>20</option>
+                        <option value={50}>50</option>
+                        <option value={80}>80</option>
+                    </select>
+                    <span className="text-sm text-gray-600">dari {totalData} data</span>
+                </div>
+
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setPage(page - 1)}
+                        disabled={page === 1}
+                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${page === 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'}`}
+                    >
+                        Sebelumnya
+                    </button>
+                    <span className="px-4 py-2 text-sm font-semibold text-gray-700">
+                        Hal {page} dari {totalPages || 1}
+                    </span>
+                    <button
+                        onClick={() => setPage(page + 1)}
+                        disabled={page === totalPages || totalPages === 0}
+                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${page === totalPages || totalPages === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'}`}
+                    >
+                        Selanjutnya
+                    </button>
+                </div>
+            </div>
+            
+            {/* Modal Detail Order */}
             {selectedOrder && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity">
                     <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all">

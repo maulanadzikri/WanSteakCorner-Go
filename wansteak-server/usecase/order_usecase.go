@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"strconv"
@@ -21,7 +22,7 @@ import (
 type OrderUsecase interface {
 	PlaceOrder(input models.CreateOrderInput) (models.Order, error)
 	PaymentNotification(input models.MidtransNotificationInput) error
-	GetAllOrders() ([]models.Order, error)
+	GetAllOrders(page, limit int, status string) ([]models.Order, map[string]interface{}, error)
 	GetOrder(orderId string) (models.Order, error)
 	UpdateOrderStatus(orderId, newStatus string) error
 	CancelOrder(orderId string) error
@@ -163,8 +164,32 @@ func (u *orderUsecase) PaymentNotification(input models.MidtransNotificationInpu
 	return u.orderRepo.UpdateStatus(orderID, newStatus)
 }
 
-func (u *orderUsecase) GetAllOrders() ([]models.Order, error) {
-	return u.orderRepo.FindAll()
+func (u *orderUsecase) GetAllOrders(page int, limit int, status string) ([]models.Order, map[string]interface{}, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+
+	offset := (page - 1) * limit
+	
+	orders, total, err := u.orderRepo.FindAll(limit, offset, status)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+
+	// Construct meta response
+	meta := map[string]interface{}{
+		"total": total,
+		"page": page,
+		"limit": limit,
+		"total_pages": totalPages,
+	}
+
+	return orders, meta, nil
 }
 
 func (u *orderUsecase) GetOrder(orderId string) (models.Order, error) {
