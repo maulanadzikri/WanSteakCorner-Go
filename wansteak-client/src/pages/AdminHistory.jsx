@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../services/api"
 import { FaSpinner } from "react-icons/fa";
+import EmptyState from "../components/EmptyState";
+import { HiOutlineDocumentReport, HiOutlineDocumentText } from "react-icons/hi";
 
 
 const AdminHistory = () => {
@@ -129,8 +131,12 @@ const AdminHistory = () => {
                         ))}
                         {filteredOrders.length === 0 && (
                             <tr>
-                                <td colSpan="5" className="p-8 text-center text-gray-500">
-                                    Tidak ada transaksi dengan status tersebut.
+                                <td colSpan="5" className="p-0">
+                                    <EmptyState 
+                                        icon={HiOutlineDocumentText}
+                                        title="Riwayat Transaksi Kosong"
+                                        message="Tidak ada transaksi dengan status tersebut."
+                                    />
                                 </td>
                             </tr>
                         )}

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import api from '../services/api'
 import toast from "react-hot-toast";
 import { FaSpinner } from "react-icons/fa";
+import EmptyState from "../components/EmptyState";
+import { HiOutlineInbox } from "react-icons/hi";
 
 const AdminOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -157,10 +159,14 @@ const AdminOrders = () => {
                                 </td>
                             </tr>
                         ))}
-                        {orders.length === 0 && (
+                        {orders.length === 0 && !loading && (
                             <tr>
-                                <td colSpan="6" className="p-8 text-center text-gray-500"> 
-                                    Belum ada pesanan masuk.
+                                <td colSpan="6" className="p-0"> 
+                                    <EmptyState 
+                                        icon={HiOutlineInbox}
+                                        title="Dapur Masih Sepi"
+                                        message="Belum ada pesanan yang masuk. santai dulu"
+                                    />
                                 </td>
                             </tr>
                         )}

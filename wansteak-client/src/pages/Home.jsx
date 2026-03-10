@@ -5,6 +5,8 @@ import MenuCard from '../components/MenuCard';
 import { FaTrash, FaTimes, FaSpinner } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { MdAccessTime, MdWarningAmber } from 'react-icons/md';
+import EmptyState from '../components/EmptyState';
+import { HiOutlineShoppingCart } from 'react-icons/hi';
 
 const Home = () => {
   const [menus, setMenus] = useState([]);
@@ -156,7 +158,11 @@ const Home = () => {
             <h2 className="text-2xl font-bold mb-6">Keranjang Pesanan</h2>
 
             {cart.length === 0 ? (
-                <p className="text-gray-500 text-center mt-10">Keranjang masih kosong.</p>
+              <EmptyState  
+                icon={HiOutlineShoppingCart}
+                title="Keranjang Kosong"
+                message="Perut keroncongan? Yuk, pilih menu favoritmu dan masukkan ke keranjang!"
+              />
             ) : (
                 <>
                     <div className="space-y-4 mb-6">

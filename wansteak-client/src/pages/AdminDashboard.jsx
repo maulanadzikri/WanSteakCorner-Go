@@ -4,6 +4,8 @@ import api from '../services/api';
 import { FaEdit, FaTrash, FaPlus, FaSignOutAlt, FaSpinner } from 'react-icons/fa';
 import toast from "react-hot-toast";
 import ConfirmModal from "../components/ConfirmModal";
+import EmptyState from "../components/EmptyState";
+import { HiOutlineDocumentText } from "react-icons/hi";
 
 
 const AdminDashboard = () => {
@@ -198,7 +200,13 @@ const AdminDashboard = () => {
                             ))}
                             {menus.length === 0 && (
                                 <tr>
-                                    <td colSpan="5" className="p-8 text-center text-gray-500">Belum ada menu. Silakan tambah menu baru.</td>
+                                    <td colSpan="5" >
+                                        <EmptyState 
+                                            icon={HiOutlineDocumentText}
+                                            title="Menu Masih Kosong"
+                                            message="Silahkan tambah menu baru."
+                                        />
+                                    </td>
                                 </tr>
                             )}
                         </tbody>

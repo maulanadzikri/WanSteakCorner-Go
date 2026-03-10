@@ -4,6 +4,9 @@ import Navbar from '../components/Navbar';
 import toast from 'react-hot-toast';
 import { FaSpinner } from 'react-icons/fa';
 import ConfirmModal from '../components/ConfirmModal';
+import EmptyState from "../components/EmptyState";
+import { HiOutlineDocumentText } from 'react-icons/hi';
+
 
 const Transactions = () => {
     const [orders, setOrders] = useState([]);
@@ -180,7 +183,11 @@ const Transactions = () => {
                     ))}
                     {orders.length === 0 && (
                         <div className="text-center py-10 text-gray-500">
-                            <p>Belum ada riwayat transaksi.</p>
+                            <EmptyState 
+                                icon={HiOutlineDocumentText}
+                                title="Riwayat Transaksi Kosong"
+                                message="Silahkan pilih menu dan buat pesanan."
+                            />
                         </div>
                     )}
                 </div>
