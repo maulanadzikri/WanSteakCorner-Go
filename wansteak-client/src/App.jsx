@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Transactions from './pages/Transactions';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminMenu from './pages/AdminMenu';
 import AdminLayout from './components/AdminLayout';
 import AdminOrders from './pages/AdminOrders';
 import AdminHistory from './pages/AdminHistory';
@@ -20,6 +21,7 @@ function App() {
 
         <Route path='/admin' element={<AdminLayout />}>
           <Route path="/admin/dashboard" element={<AdminDashboard />}/>
+          <Route path="/admin/menu" element={<AdminMenu />}/>
           <Route path="/admin/orders" element={<AdminOrders />}/>
           <Route path="/admin/history" element={<AdminHistory />}/>
 

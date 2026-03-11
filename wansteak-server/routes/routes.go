@@ -52,6 +52,7 @@ func SetupRouter(
 			protected.POST("/menu", menuController.Create)
 			protected.PUT("/menu/:id", menuController.Update)
 			protected.DELETE("/menu/:id", menuController.Delete)
+			protected.GET("/dashboard/stats", orderController.GetDashboardStats)
 		}
 	}
 

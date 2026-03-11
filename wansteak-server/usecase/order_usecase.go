@@ -26,6 +26,7 @@ type OrderUsecase interface {
 	GetOrder(orderId string) (models.Order, error)
 	UpdateOrderStatus(orderId, newStatus string) error
 	CancelOrder(orderId string) error
+	GetDashboardStats() (models.DashboardStats, error)
 }
 
 type orderUsecase struct {
@@ -320,4 +321,13 @@ func (u *orderUsecase) checkMidtransStatus(order models.Order) (string, error) {
 	}
 
 	return newStatus, nil
+}
+
+func (u *orderUsecase) GetDashboardStats() (models.DashboardStats, error) {
+	stats, err := u.orderRepo.GetDashboardStats()
+	if err != nil {
+		return stats, err
+	}
+
+	return stats, nil
 }

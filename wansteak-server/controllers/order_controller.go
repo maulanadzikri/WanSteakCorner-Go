@@ -116,3 +116,15 @@ func (c *OrderController) CancelOrder(ctx *gin.Context){
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "Pesanan berhasil dibatalkan."})
 }
+
+func (c *OrderController) GetDashboardStats(ctx *gin.Context) {
+	stats, err := c.orderUsecase.GetDashboardStats()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Gagal mengambil data statistik dashboard",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": stats})
+}

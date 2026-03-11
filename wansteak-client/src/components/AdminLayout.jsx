@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { FaSignOutAlt } from "react-icons/fa";
-import { MdNotifications, MdRestaurantMenu, MdHistory } from "react-icons/md";
+import { MdNotifications, MdRestaurantMenu, MdHistory, MdDashboard } from "react-icons/md";
 import toast from "react-hot-toast";
 import ConfirmModal from "./ConfirmModal";
 
@@ -26,7 +26,8 @@ const AdminLayout = () => {
     const isActive = (path) => location.pathname.includes(path);
 
     let pageTitle = "Dashboard Admin";
-    if (isActive('admin/dashboard')) pageTitle = "Manajemen Menu";
+    if (isActive('admin/dashboard')) pageTitle = "Dashboard";
+    if (isActive('admin/menu')) pageTitle = "Manajemen Menu";
     if (isActive('admin/orders')) pageTitle = "Pesanan Masuk";
     if (isActive('admin/history')) pageTitle = "Riwayat Transaksi";
 
@@ -40,16 +41,22 @@ const AdminLayout = () => {
 
                 <nav className="flex flex-col flex-1 p-4 gap-2">
                     <Link
+                        to="/admin/dashboard"
+                        className={`px-4 py-3 rounded-lg font-semibold transition flex items-center gap-3 ${isActive('/admin/dashboard') ? 'bg-red-50 text-red-600' : 'text-gray-600 hover:bg-gray-100'}`}
+                    >
+                        <MdDashboard className="text-2xl" />Dashboard
+                    </Link>    
+                    <Link
+                        to="/admin/menu"
+                        className={`px-4 py-3 rounded-lg font-semibold transition flex items-center gap-3 ${isActive('/admin/menu') ? 'bg-red-50 text-red-600' : 'text-gray-600 hover:bg-gray-100'}`}
+                    >
+                        <MdRestaurantMenu className="text-2xl" />Manajemen Menu
+                    </Link>    
+                    <Link
                         to="/admin/orders"
                         className={`px-4 py-3 rounded-lg font-semibold transition flex items-center gap-3 ${isActive('/admin/orders') ? 'bg-red-50 text-red-600' : 'text-gray-600 hover:bg-gray-100'}`}
                     >
                         <MdNotifications className="text-2xl" /> Pesanan Masuk
-                    </Link>    
-                    <Link
-                        to="/admin/dashboard"
-                        className={`px-4 py-3 rounded-lg font-semibold transition flex items-center gap-3 ${isActive('/admin/dashboard') ? 'bg-red-50 text-red-600' : 'text-gray-600 hover:bg-gray-100'}`}
-                    >
-                        <MdRestaurantMenu className="text-2xl" />Manajemen Menu
                     </Link>    
                     <Link
                         to="/admin/history"

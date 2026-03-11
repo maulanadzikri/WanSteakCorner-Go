@@ -11,6 +11,7 @@ type OrderRepository interface {
 	UpdateStatus(orderId string, newStatus string) error
 	FindAll(limit, offset int, status string) ([]models.Order, int64, error)
 	FindByID(orderId string) (models.Order, error)
+	GetDashboardStats() (models.DashboardStats, error)
 }
 
 type orderRepo struct {
@@ -57,4 +58,32 @@ func (r *orderRepo) FindByID(id string) (models.Order, error) {
 
 	err := r.db.Preload("Items").First(&order, "id = ?", id).Error
 	return order, err
+}
+
+func (r *orderRepo) GetDashboardStats() (models.DashboardStats, error) {
+	var stats models.DashboardStats
+
+	// Total Orders
+	r.db.Model(&models.Order{}).Count(&stats.TotalOrders)
+	// Total Completed Orders
+	r.db.Model(&models.Order{}).Where("status = ?", "completed").Count(&stats.CompletedOrders)
+	// Total Cancelled Orders
+	r.db.Model(&models.Order{}).Where("status = ?", "cancelled").Count(&stats.CancelledOrders)
+	
+	// Total Revenue (only 'completed' orders)
+	r.db.Model(&models.Order{}).
+		Where("status = ?", "completed").
+		Select("COALESCE(SUM(total), 0)").
+		Scan((&stats.TotalRevenue))
+		
+	// Today Revenue 
+	r.db.Model(&models.Order{}).
+		Where("status = ? AND DATE(created_at) = CURRENT_DATE()", "completed").
+		Select("COALESCE(SUM(total), 0)").
+		Scan((&stats.TodayRevenue))
+
+	// Total Menus Active
+	r.db.Model(&models.Menu{}).Count(&stats.TotalMenus)
+
+	return stats, nil
 }

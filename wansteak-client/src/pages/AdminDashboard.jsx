@@ -1,288 +1,148 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import api from '../services/api';
-import { FaEdit, FaTrash, FaPlus, FaSignOutAlt, FaSpinner } from 'react-icons/fa';
-import toast from "react-hot-toast";
-import ConfirmModal from "../components/ConfirmModal";
-import EmptyState from "../components/EmptyState";
-import { HiOutlineDocumentText } from "react-icons/hi";
+import React, { useEffect, useState } from "react";
+import api from '../services/api'
+import { FaSpinner } from "react-icons/fa";
+import { HiOutlineCheckCircle, HiOutlineCurrencyDollar, HiOutlineShoppingCart, HiOutlineTrendingUp, HiOutlineViewGrid, HiOutlineXCircle } from "react-icons/hi";
 
 
 const AdminDashboard = () => {
-    const navigate = useNavigate();
-    const [menus, setMenus] = useState([]);
-    const [loading, setLoading] = useState(true)
-    const [menuToDelete, setMenuToDelete] = useState(null)
-
-    // State for Modal Form
-    const [showModal, setShowModal] = useState(false);
-    const [isEdit, setIsEdit] = useState(false); // Marker whether this is Edit or Add mode
-    const [editId, setEditId] = useState(null);
-
-    // State Form
-    const [formData, setFormData] = useState({
-        name: '',
-        price: '',
-        image: '',
-        stok: 'tersedia'
+    const [stats, setStats] = useState({
+        total_revenue: 0,
+        today_revenue: 0,
+        total_orders: 0,
+        completed_orders: 0,
+        total_menus: 0,
     });
+    const [loading, setLoading] = useState(true);
 
-    // 1. Check Auth & Fetch Data Menu on first render
-    useEffect(() => {
-        const token = localStorage.getItem("admin_token");
-        if (!token){
-            navigate("/login");
-            return;
-        }
-        fetchMenus();
-    }, [navigate]);
-
-    // --- API FUNCTION (READ, CREATE, UPDATE, DELETE) ---
-    const fetchMenus = async () => {
+    const fetchStats = async (isBackground = false) => {
         try {
-            setLoading(true);
-            const response = await api.get('/menu');
-            setMenus(response.data.data || []);
-        } catch (error) {
-            console.error("Gagal mengambil data menu", error);
-            if (error.response?.status === 401) handleLogout(); // if token expired, force logout
-        } finally {
-            setLoading(false)
-        }
-    }; 
+            if (!isBackground) setLoading(true)
 
-    const triggerDelete = (id) => {
-        setMenuToDelete(id);
-    };
-
-    const confirmDelete = async () => {
-        if (!menuToDelete) return;
-
-        try {
-            await api.delete(`/menu/${menuToDelete}`)   ;
-            fetchMenus(); // refresh table
-            toast.success("Menu berhasil dihapus!");
-        } catch (error) {
-            console.error("Gagal menghapus", error);
-            toast.error("Gagal menghapus menu.");
-        } finally {
-            setMenuToDelete(null);
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        // Convert price from string (input type text) to number
-        const payload = {
-            ...formData,
-            price: Number(formData.price)
-        };
-
-        try {
-            if (isEdit) {
-                // Process Edit (PUT)
-                await api.put(`/menu/${editId}`, payload);
-                toast.success("Menu berhasil diupdate!");
-            } else {
-                // Process Add (POST)
-                await api.post('/menu', payload);
-                toast.success("Menu berhasil ditambahkan!");
+            const response = await api.get('/dashboard/stats');
+            if (response.data.data && response.data) {
+                setStats(response.data.data);
             }
-
-            setShowModal(false); // Close Modal
-            fetchMenus(); // Refresh table
         } catch (error) {
-            console.error("Gagal simpan data", error);
-            toast.error("Gagal menyimpan menu.");
+            console.error("Gagal mengambil data statistik:", error);
+        } finally {
+            if (!isBackground) setLoading(false);
         }
     };
 
-    // --- FUNCTION UI / HANDLER ---
-    const handleLogout = () => {
-        // Remove token and redirect to login
-        localStorage.removeItem("admin_token");
-        navigate("/login");
-    };
+    useEffect(() => {
+        fetchStats(false);
 
-    const openAddModal = () => {
-        setIsEdit(false);
-        setFormData({name: '', price: '', image: '', stok: 'tersedia'});
-        setShowModal(true);
-    };
+        const interval = setInterval(() => {
+            fetchStats(true);
+        }, 60000);
 
-    const openEditModal = (menu) => {
-        setIsEdit(true);
-        setEditId(menu.id);
-        setFormData({
-            name: menu.name,
-            price: menu.price,
-            image: menu.image,
-            stok: menu.stok
-        });
-        setShowModal(true);
-    };
+        return () => clearInterval(interval);
+    }, []);
 
-    const handleFormChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+    const formatRupiah = (number) => {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            maximumFractionDigits: 0
+        }).format(number);
     };
 
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center py-20">
                 <FaSpinner className="animate-spin text-4xl text-red-500 mb-4" />
-                <p className="text-gray-500 font-medium animate-pulse">Memuat data menu...</p>
+                <p className="text-gray-500 font-medium animate-pulse">Memuat ringkasan bisnis...</p>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-100 p-6 font-sans">
-            
-            {/* Tabel Konten */}
-            <div className="max-w-6xl mx-auto bg-white rounded-lg shadow overflow-hidden">
-                <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-                    <h2 className="text-lg font-semibold text-gray-700">Daftar Menu</h2>
-                    <button 
-                        onClick={openAddModal}
-                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700 transition shadow">
-                        <FaPlus /> Tambah Menu
-                    </button>
-                </div>
-                
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider">
-                                <th className="p-4 font-semibold border-b">Gambar</th>
-                                <th className="p-4 font-semibold border-b">Nama Menu</th>
-                                <th className="p-4 font-semibold border-b">Harga</th>
-                                <th className="p-4 font-semibold border-b">Stok</th>
-                                <th className="p-4 font-semibold border-b text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody className="text-gray-700">
-                            {menus.map((menu) => (
-                                <tr key={menu.id} className="border-b hover:bg-gray-50 transition">
-                                    <td className="p-4">
-                                        <img src={menu.image || "https://placehold.co/50x50?text=No+Img"} alt={menu.name} className="w-16 h-16 object-cover rounded shadow-sm" />
-                                    </td>
-                                    <td className="p-4 font-medium">{menu.name}</td>
-                                    <td className="p-4 text-red-600 font-semibold">
-                                        Rp {menu.price.toLocaleString('id-ID')}
-                                    </td>
-                                    <td className="p-4">
-                                        <span className={`px-3 py-1 text-xs rounded-full font-bold ${
-                                            menu.stok === 'tersedia' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'
-                                        }`}>
-                                            {menu.stok.toUpperCase()}
-                                        </span>
-                                    </td>
-                                    <td className="p-4">
-                                        <div className="flex items-center justify-center gap-3">
-                                            <button 
-                                                onClick={() => openEditModal(menu)} 
-                                                className="text-blue-500 hover:text-blue-700 p-2 bg-blue-50 rounded-full transition" 
-                                                title="Edit"
-                                            >
-                                                <FaEdit size={18} />
-                                            </button>
-                                            <button 
-                                                onClick={() => triggerDelete(menu.id)} 
-                                                className="text-red-500 hover:text-red-700 p-2 bg-red-50 rounded-full transition" 
-                                                title="Hapus"
-                                            >
-                                                <FaTrash size={18} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            {menus.length === 0 && (
-                                <tr>
-                                    <td colSpan="5" >
-                                        <EmptyState 
-                                            icon={HiOutlineDocumentText}
-                                            title="Menu Masih Kosong"
-                                            message="Silahkan tambah menu baru."
-                                        />
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+        <div className="animate-fade-in-up">
+            <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-800">Ringkasan Bisnis</h2>
+                <p className="text-gray-500 text-sm mt-1">Pantau performa penjualan Wansteak Corner hari ini</p>
             </div>
 
-            {/* MODAL FORM (TAMBAH / EDIT) */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
-                        <div className="bg-gray-50 p-4 border-b flex justify-between items-center">
-                            <h2 className="text-xl font-bold text-gray-800">
-                                {isEdit ? 'Edit Menu' : 'Tambah Menu Baru'}
-                            </h2>
-                            <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-red-500 font-bold text-xl">&times;</button>
-                        </div>
-                        
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Nama Menu</label>
-                                <input 
-                                    type="text" name="name" value={formData.name} onChange={handleFormChange} required
-                                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" 
-                                    placeholder="Contoh: Steak Wagyu"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Harga (Rp)</label>
-                                <input 
-                                    type="number" name="price" value={formData.price} onChange={handleFormChange} required min="0"
-                                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" 
-                                    placeholder="Contoh: 150000"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">URL Gambar (Opsional)</label>
-                                <input 
-                                    type="text" name="image" value={formData.image} onChange={handleFormChange}
-                                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" 
-                                    placeholder="https://..."
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Status Stok</label>
-                                <select 
-                                    name="stok" value={formData.stok} onChange={handleFormChange}
-                                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                                    <option value="tersedia">Tersedia</option>
-                                    <option value="habis">Habis</option>
-                                </select>
-                            </div>
-                            
-                            <div className="pt-4 flex gap-3">
-                                <button type="button" onClick={() => setShowModal(false)} className="w-1/2 py-2 bg-gray-200 text-gray-800 font-semibold rounded hover:bg-gray-300 transition">
-                                    Batal
-                                </button>
-                                <button type="submit" className="w-1/2 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition">
-                                    Simpan
-                                </button>
-                            </div>
-                        </form>
+            {/* Grid Card Statistic */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                {/* Card 1: Today Revenue */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5 hover:shadow-md transition">
+                    <div className="p-4 bg-green-50 text-green-600 rounded-xl">
+                        <HiOutlineTrendingUp className="text-4xl" />
+                    </div>
+                    <div>
+                        <p className="text-sm font-semibold text-gray-500 mb-1">Pendapatan Hari Ini</p>
+                        <h3 className="text-2xl font-extrabold text-gray-800">{formatRupiah(stats.today_revenue)}</h3>
                     </div>
                 </div>
-            )}
 
-            <ConfirmModal 
-                isOpen={!!menuToDelete}
-                title="Hapus menu ini?"
-                message="Data menu yang dihapus tidak dapat dikembalikan."
-                onConfirm={confirmDelete}
-                onCancel={() => setMenuToDelete(null)}
-                confirmText="Ya, Hapus"
-            />
+                {/* Card 2: Total Revenue */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5 hover:shadow-md transition">
+                    <div className="p-4 bg-blue-50 text-blue-600 rounded-xl">
+                        <HiOutlineCurrencyDollar className="text-4xl" />
+                    </div>
+                    <div>
+                        <p className="text-sm font-semibold text-gray-500 mb-1">Total Pendapatan</p>
+                        <h3 className="text-2xl font-extrabold text-gray-800">{formatRupiah(stats.total_revenue)}</h3>
+                    </div>
+                </div>
+
+                {/* Card 3: Total Orders */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5 hover:shadow-md transition">
+                    <div className="p-4 bg-orange-50 text-orange-600 rounded-xl">
+                        <HiOutlineShoppingCart className="text-4xl" />
+                    </div>
+                    <div>
+                        <p className="text-sm font-semibold text-gray-500 mb-1">Semua Pesanan</p>
+                        <h3 className="text-2xl font-extrabold text-gray-800">
+                            {stats.total_orders} <span className="text-sm font-medium text-gray-500">transaksi</span>
+                        </h3>
+                    </div>
+                </div>
+
+                {/* Card 4: Completed Orders */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5 hover:shadow-md transition">
+                    <div className="p-4 bg-teal-50 text-teal-600 rounded-xl">
+                        <HiOutlineCheckCircle className="text-4xl" />
+                    </div>
+                    <div>
+                        <p className="text-sm font-semibold text-gray-500 mb-1">Pesanan Sukses</p>
+                        <h3 className="text-2xl font-extrabold text-gray-800">
+                            {stats.completed_orders} <span className="text-sm font-medium text-gray-500">transaksi</span>
+                        </h3>
+                    </div>
+                </div>
+
+                {/* Card 5: Cancelled Orders */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5 hover:shadow-md transition">
+                    <div className="p-4 bg-red-50 text-red-600 rounded-xl">
+                        <HiOutlineXCircle className="text-4xl" />
+                    </div>
+                    <div>
+                        <p className="text-sm font-semibold text-gray-500 mb-1">Pesanan Batal</p>
+                        <h3 className="text-2xl font-extrabold text-gray-800">
+                            {stats.cancelled_orders} <span className="text-sm font-medium text-gray-500">transaksi</span>
+                        </h3>
+                    </div>
+                </div>
+
+                {/* Card 6: Total Menus */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5 hover:shadow-md transition">
+                    <div className="p-4 bg-purple-50 text-purple-600 rounded-xl">
+                        <HiOutlineViewGrid className="text-4xl" />
+                    </div>
+                    <div>
+                        <p className="text-sm font-semibold text-gray-500 mb-1">Total Menu Aktif</p>
+                        <h3 className="text-2xl font-extrabold text-gray-800">
+                            {stats.total_menus} <span className="text-sm font-medium text-gray-500">menu</span>
+                        </h3>
+                    </div>
+                </div>
+
+            </div>
         </div>
-    );
+    )
 };
 
 export default AdminDashboard;
