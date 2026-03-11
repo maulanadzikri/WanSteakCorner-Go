@@ -2,6 +2,15 @@ package models
 
 import "time"
 
+const (
+	OrderStatusPending    = "pending"
+	OrderStatusPaid       = "paid"
+	OrderStatusProcessing = "processing"
+	OrderStatusCompleted  = "completed"
+	OrderStatusCancelled  = "cancelled"
+	OrderStatusExpired    = "expired"
+)
+
 type Order struct {
 	ID        string      `json:"id" gorm:"primaryKey"`
 	Customer  string      `json:"customer_name"`
@@ -14,11 +23,11 @@ type Order struct {
 }
 
 type OrderItem struct {
-	ID uint `json:"id" gorm:"primaryKey"`
-	OrderID string `json:"order_id"`
-	MenuID uint `json:"menu_id"`
-	MenuName string `json:"menu_name"`
-	Price float64 `json:"price"`
-	Quantity int `json:"quantity"`
+	ID       uint    `json:"id" gorm:"primaryKey"`
+	OrderID  string  `json:"order_id"`
+	MenuID   uint    `json:"menu_id"`
+	MenuName string  `json:"menu_name"`
+	Price    float64 `json:"price"`
+	Quantity int     `json:"quantity"`
 	SubTotal float64 `json:"sub_total"`
 }

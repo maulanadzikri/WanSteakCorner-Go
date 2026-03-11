@@ -66,21 +66,21 @@ func (r *orderRepo) GetDashboardStats() (models.DashboardStats, error) {
 	// Total Orders
 	r.db.Model(&models.Order{}).Count(&stats.TotalOrders)
 	// Total Completed Orders
-	r.db.Model(&models.Order{}).Where("status = ?", "completed").Count(&stats.CompletedOrders)
+	r.db.Model(&models.Order{}).Where("status = ?", models.OrderStatusCompleted).Count(&stats.CompletedOrders)
 	// Total Cancelled Orders
-	r.db.Model(&models.Order{}).Where("status = ?", "cancelled").Count(&stats.CancelledOrders)
+	r.db.Model(&models.Order{}).Where("status = ?", models.OrderStatusCancelled).Count(&stats.CancelledOrders)
 	
 	// Total Revenue (only 'completed' orders)
 	r.db.Model(&models.Order{}).
-		Where("status = ?", "completed").
+		Where("status = ?", models.OrderStatusCompleted).
 		Select("COALESCE(SUM(total), 0)").
-		Scan((&stats.TotalRevenue))
+		Scan(&stats.TotalRevenue)
 		
 	// Today Revenue 
 	r.db.Model(&models.Order{}).
-		Where("status = ? AND DATE(created_at) = CURRENT_DATE()", "completed").
+		Where("status = ? AND DATE(created_at) = CURRENT_DATE", models.OrderStatusCompleted).
 		Select("COALESCE(SUM(total), 0)").
-		Scan((&stats.TodayRevenue))
+		Scan(&stats.TodayRevenue)
 
 	// Total Menus Active
 	r.db.Model(&models.Menu{}).Count(&stats.TotalMenus)

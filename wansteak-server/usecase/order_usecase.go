@@ -35,7 +35,7 @@ type orderUsecase struct {
 }
 
 type MidtransStatusResponse struct {
-	StatusCode        string `json:"status_code"`      
+	StatusCode        string `json:"status_code"`
 	StatusMessage     string `json:"status_message"`
 	TransactionStatus string `json:"transaction_status`
 	FraudStatus       string `json:"fraud_status`
@@ -79,7 +79,7 @@ func (u *orderUsecase) PlaceOrder(input models.CreateOrderInput) (models.Order, 
 		ID:        orderID,
 		Customer:  input.CustomerName,
 		Total:     totalAmount,
-		Status:    "pending",
+		Status:    models.OrderStatusPending,
 		SnapURL:   midtransResp.RedirectURL,
 		SnapToken: midtransResp.Token,
 		Items:     orderItems,
@@ -127,7 +127,7 @@ func (u *orderUsecase) createMidtransTransaction(orderID string, grossAmount int
 			snap.SnapPaymentType("dana"),
 		},
 		Expiry: &snap.ExpiryDetails{
-			Unit: "minutes",
+			Unit:     "minutes",
 			Duration: 30,
 		},
 	}
@@ -150,16 +150,16 @@ func (u *orderUsecase) PaymentNotification(input models.MidtransNotificationInpu
 		if fraudStatus == "challenge" {
 			newStatus = "challenge"
 		} else if fraudStatus == "accept" {
-			newStatus = "paid"
+			newStatus = models.OrderStatusPaid
 		}
 	} else if transactionStatus == "settlement" {
-		newStatus = "paid"
+		newStatus = models.OrderStatusPaid
 	} else if transactionStatus == "expire" {
 		newStatus = "expired"
 	} else if transactionStatus == "deny" || transactionStatus == "cancel" {
-		newStatus = "cancelled"
-	} else if transactionStatus == "pending" {
-		newStatus = "pending"
+		newStatus = models.OrderStatusCancelled
+	} else if transactionStatus == models.OrderStatusPending {
+		newStatus = models.OrderStatusPending
 	}
 
 	return u.orderRepo.UpdateStatus(orderID, newStatus)
@@ -174,7 +174,7 @@ func (u *orderUsecase) GetAllOrders(page int, limit int, status string) ([]model
 	}
 
 	offset := (page - 1) * limit
-	
+
 	orders, total, err := u.orderRepo.FindAll(limit, offset, status)
 	if err != nil {
 		return nil, nil, err
@@ -184,9 +184,9 @@ func (u *orderUsecase) GetAllOrders(page int, limit int, status string) ([]model
 
 	// Construct meta response
 	meta := map[string]interface{}{
-		"total": total,
-		"page": page,
-		"limit": limit,
+		"total":       total,
+		"page":        page,
+		"limit":       limit,
 		"total_pages": totalPages,
 	}
 
@@ -200,7 +200,7 @@ func (u *orderUsecase) GetOrder(orderId string) (models.Order, error) {
 	}
 
 	// AUTO-SYNC ORDER STATUS LOGIC
-	if order.Status == "pending" {
+	if order.Status == models.OrderStatusPending {
 		log.Printf("[AUTO-SYNC] Mengecek status Midtrans untuk Order ID: %s", orderId)
 
 		midtransStatus, err := u.checkMidtransStatus(order)
@@ -211,7 +211,7 @@ func (u *orderUsecase) GetOrder(orderId string) (models.Order, error) {
 		}
 
 		// if the check is successful and the status has CHANGED (not pending anymore)
-		if err == nil && midtransStatus != "" && midtransStatus != "pending" {
+		if err == nil && midtransStatus != "" && midtransStatus != models.OrderStatusPending {
 			u.orderRepo.UpdateStatus(orderId, midtransStatus) // update order status in local database
 			order.Status = midtransStatus                     //
 		}
@@ -229,7 +229,7 @@ func (u *orderUsecase) CancelOrder(orderId string) error {
 	if err != nil {
 		return err
 	}
-	if order.Status != "pending"{
+	if order.Status != models.OrderStatusPending {
 		return fmt.Errorf("hanya pesanan pending yang bisa dibatalkan.")
 	}
 
@@ -239,12 +239,12 @@ func (u *orderUsecase) CancelOrder(orderId string) error {
 
 	cancelResp, midErr := client.CancelTransaction((orderId))
 	if midErr != nil {
-		log.Printf("[WARNING] Gagal cancel di Midtrans (mungkin belum aktif): %v", midErr )
+		log.Printf("[WARNING] Gagal cancel di Midtrans (mungkin belum aktif): %v", midErr)
 	} else {
 		log.Printf("[INFO] Berhasil cancel di Midtrans: %s", cancelResp.StatusMessage)
 	}
 
-	err = u.orderRepo.UpdateStatus(orderId, "cancelled")
+	err = u.orderRepo.UpdateStatus(orderId, models.OrderStatusCancelled)
 	return err
 }
 
@@ -274,10 +274,10 @@ func (u *orderUsecase) checkMidtransStatus(order models.Order) (string, error) {
 
 	// Baca body dari response
 	bodyBytes, _ := io.ReadAll(resp.Body)
-	
+
 	// Pastikan status HTTP tidak bernilai 401 Unauthorized, dsb
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != 404 {
-	    return "", fmt.Errorf("HTTP status %d: %s", resp.StatusCode, string(bodyBytes))
+		return "", fmt.Errorf("HTTP status %d: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	var res MidtransStatusResponse
@@ -303,19 +303,19 @@ func (u *orderUsecase) checkMidtransStatus(order models.Order) (string, error) {
 		}
 
 		log.Printf("[INFO] Transaksi %s belum aktif di Midtrans (menunggu pembayaran). Dianggap PENDING.", orderId)
-		return "pending", nil
+		return models.OrderStatusPending, nil
 	}
 
 	// MAPPING STATUS SEPERTI BIASA
 	var newStatus string
 	if res.TransactionStatus == "capture" || res.TransactionStatus == "settlement" {
-		newStatus = "paid"
+		newStatus = models.OrderStatusPaid
 	} else if res.TransactionStatus == "expire" {
 		newStatus = "expired"
 	} else if res.TransactionStatus == "cancel" || res.TransactionStatus == "deny" {
-		newStatus = "cancelled"
-	} else if res.TransactionStatus == "pending" {
-		newStatus = "pending"
+		newStatus = models.OrderStatusCancelled
+	} else if res.TransactionStatus == models.OrderStatusPending {
+		newStatus = models.OrderStatusPending
 	} else {
 		return "", fmt.Errorf("status tidak dikenali: %s", res.TransactionStatus)
 	}
