@@ -2,13 +2,18 @@ import { useEffect, useState } from "react";
 import api from '../services/api'
 import toast from "react-hot-toast";
 import { FaSpinner } from "react-icons/fa";
-import EmptyState from "../components/EmptyState";
-import { HiOutlineInbox } from "react-icons/hi";
+import OrderTable from "../components/OrderTable";
+import Pagination from "../components/Pagination";
 
 const AdminOrders = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
+
+    const [page, setPage] = useState(1)
+    const [limit, setLimit] = useState(10)
+    const [totalPages, setTotalPages] = useState(1)
+    const [totalData, setTotalData] = useState(0)
 
     const fetchAllOrders = async (isBackground = false) => {
         try {
@@ -16,12 +21,16 @@ const AdminOrders = () => {
                 setLoading(true);
             }
 
-            const response = await api.get('/orders');
+            const response = await api.get(`/orders?page=${page}&limit=${limit}`);
             const sortedOrders = (response.data.data || response.data).sort((a, b) => 
                 new Date(b.created_at) - new Date(a.created_at)
             );
 
             setOrders(sortedOrders);
+            if (response.data.meta) {
+                setTotalPages(response.data.meta.total_pages);
+                setTotalData(response.data.meta.total);
+            }
         } catch (error) {
             console.error("Gagal mengambil data pesanan: ", error);
             if (!isBackground) toast.error("Gagal memuat pesanan")
@@ -40,7 +49,12 @@ const AdminOrders = () => {
             fetchAllOrders(true);
         }, 10000);
         return () => clearInterval(interval);
-    }, []);
+    }, [page, limit]);
+
+    const handleLimitChange = (newLimit) => {
+        setLimit(newLimit);
+        setPage(1);
+    };
 
     const handleUpdateStatus = async (orderId, newOrderStatus) => {
         try {
@@ -50,18 +64,6 @@ const AdminOrders = () => {
         } catch (error) {
             console.error("Gagal update status: ", error);
             toast.error("Gagal memperbarui status pesanan.");
-        }
-    };
-
-    const getStatusBadge = (status) => {
-        switch (status) {
-            case 'paid': return <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">Sudah Dibayar</span>;
-            case 'processing': return <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold">Sedang Dimasak</span>;
-            case 'completed': return <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">Selesai</span>;
-            case 'pending': return <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold">Menunggu Pembayaran</span>;
-            case 'cancelled': return <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Dibatalkan</span>;
-            case 'expired': return <span className="bg-gray-200 text-gray-500 px-3 py-1 rounded-full text-xs font-bold">Kedaluwarsa</span>;
-            default: return <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold">{status}</span>;
         }
     };
 
@@ -101,78 +103,44 @@ const AdminOrders = () => {
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="overflow-x-hidden">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm uppercase tracking-wider">
-                            <th className="p-4 font-semibold">Order ID & Waktu</th>
-                            <th className="p-4 font-semibold">Pelanggan</th>
-                            <th className="p-4 font-semibold">Pesanan</th>
-                            <th className="p-4 font-semibold">Total</th>
-                            <th className="p-4 font-semibold">Status</th>
-                            <th className="p-4 font-semibold">Aksi Dapur</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                        {orders.map((order) => (
-                            <tr key={order.id} className="hover:bg-gray-50 transition">
-                                <td className="p-4">
-                                    <div className="font-semibold text-gray-800">{order.id}</div>
-                                    <div className="text-xs text-gray-500">
-                                        {new Date(order.created_at).toLocaleString('id-ID')}
-                                    </div>
-                                </td>
-                                <td className="p-4 text-gray-800">{order.customer_name || '-'}</td>
-                                <td className="p-4 text-sm text-gray-600">
-                                    <button
-                                        onClick={() => setSelectedOrder(order)}
-                                        className="text-blue-600 font-semibold hover:text-blue-800 hover:underline flex items-center gap-1 transition"
-                                    >
-                                        Lihat detail
-                                    </button>
-                                </td>
-                                <td className="p-4 font-semibold text-gray-800">
-                                    Rp {order.total?.toLocaleString('id-ID')}
-                                </td>
-                                <td className="p-4">
-                                    {getStatusBadge(order.status)}
-                                </td>
-                                <td className="p-4 text-center">
-                                    {order.status == 'paid' && (
-                                        <button
-                                            onClick={() => handleUpdateStatus(order.id, 'processing')}
-                                            className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition w-full" 
-                                        >
-                                            Mulai Masak
-                                        </button>
-                                    )}
-                                    {order.status == 'processing' && (
-                                        <button
-                                            onClick={() => handleUpdateStatus(order.id, 'completed')}
-                                            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition w-full" 
-                                        >
-                                            Siap Disajikan
-                                        </button>
-                                    )}
-                                    {['pending', 'cancelled', 'expired', 'completed'].includes(order.status) && (
-                                        <span className="text-gray-400 text-sm">-</span>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                        {orders.length === 0 && !loading && (
-                            <tr>
-                                <td colSpan="6" className="p-0"> 
-                                    <EmptyState 
-                                        icon={HiOutlineInbox}
-                                        title="Dapur Masih Sepi"
-                                        message="Belum ada pesanan yang masuk. santai dulu"
-                                    />
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                <OrderTable 
+                    orders={orders}
+                    emptyMessage="Tidak ada pesanan masuk saat ini."
+                    onViewDetail={setSelectedOrder}
+                    renderAction={(order) => {
+                        if (order.status === 'paid') {
+                            return (
+                                <button
+                                    onClick={() => handleUpdateStatus(order.id, 'processing')}
+                                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition w-full" 
+                                >
+                                    Mulai Masak
+                                </button>
+                            );
+                        } else if (order.status === 'processing') {
+                            return (
+                                <button
+                                    onClick={() => handleUpdateStatus(order.id, 'completed')}
+                                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition w-full" 
+                                >
+                                    Siap Disajikan
+                                </button>
+                            );
+                        }
+                        return <span className="text-gray-400 text-sm">-</span>;
+                    }}
+                />
             </div>
+
+            {/* PAGINATION & LIMIT DATA */}
+            <Pagination 
+                page={page}
+                limit={limit}
+                totalPages={totalPages}
+                totalData={totalData}
+                onPageChange={setPage}
+                onLimitChange={handleLimitChange}
+            />
 
             {selectedOrder && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity">
