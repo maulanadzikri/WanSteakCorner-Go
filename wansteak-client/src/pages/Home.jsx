@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import Navbar from '../components/Navbar';
 import MenuCard from '../components/MenuCard';
-import { FaTrash, FaTimes, FaSpinner } from 'react-icons/fa';
+import CartSidebar from '../components/CartSidebar';
 import toast from 'react-hot-toast';
+import { FaSpinner } from 'react-icons/fa';
 import { MdAccessTime, MdWarningAmber } from 'react-icons/md';
-import EmptyState from '../components/EmptyState';
-import { HiOutlineShoppingCart } from 'react-icons/hi';
 
 const Home = () => {
   const [menus, setMenus] = useState([]);
@@ -87,14 +86,15 @@ const Home = () => {
       ];
       localStorage.setItem('wansteak_orders', JSON.stringify(newOrderHistory));
 
+      setCart([]);
+      setCustomerName("");
+      setShowCart(false);
+
       // Tampilkan Popup Midtrans
       if (window.snap) {
         window.snap.pay(snap_token, {
           onSuccess: function(result) {
             toast.success("Pembayaran Berhasil!");
-            setCart([]);
-            setCustomerName("");
-            setShowCart(false);
             console.log(result);
           },
           onPending: function(result) {
@@ -108,7 +108,7 @@ const Home = () => {
             console.log(result);
           },
           onClose: function() {
-            toast("Anda menutup popup tanpa menyelesaikan pembayaran", {
+            toast("Silahkan selesaikan pembayaran di menu Riwayat Pesanan", {
               icon: <MdWarningAmber className="text-orange-500 text-xl" />
             });
           }
@@ -147,87 +147,16 @@ const Home = () => {
 
       {/* Cart Sidebar / Modal */}
       {showCart && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex justify-end">
-          <div className="bg-white w-full max-w-md h-full p-6 shadow-xl overflow-y-auto relative">
-            <button 
-                onClick={() => setShowCart(false)}
-                className="absolute top-4 right-4 text-gray-500 hover:text-red-500">
-                <FaTimes size={24} />
-            </button>
-            
-            <h2 className="text-2xl font-bold mb-6">Keranjang Pesanan</h2>
-
-            {cart.length === 0 ? (
-              <EmptyState  
-                icon={HiOutlineShoppingCart}
-                title="Keranjang Kosong"
-                message="Perut keroncongan? Yuk, pilih menu favoritmu dan masukkan ke keranjang!"
-              />
-            ) : (
-                <>
-                    <div className="space-y-4 mb-6">
-                        {cart.map((item) => (
-                            <div key={item.id} className="flex justify-between items-center border-b pb-2">
-                                <div>
-                                    <h4 className="font-bold">{item.name}</h4>
-                                    <p className="text-sm text-gray-600">
-                                        Rp {item.price.toLocaleString()} x {item.qty}
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <span className="font-bold text-red-600">
-                                        Rp {(item.price * item.qty).toLocaleString()}
-                                    </span>
-                                    <button 
-                                        onClick={() => removeFromCart(item.id)}
-                                        className="text-red-500 hover:text-red-700">
-                                        <FaTrash />
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="border-t pt-4">
-                        <div className="flex justify-between text-xl font-bold mb-4">
-                            <span>Total:</span>
-                            <span>Rp {calculateTotal().toLocaleString()}</span>
-                        </div>
-
-                        <div className="mb-4">
-                            <label className="block text-sm font-bold mb-2">Nama Pelanggan</label>
-                            <input 
-                                type="text"
-                                value={customerName}
-                                onChange={(e) => setCustomerName(e.target.value)}
-                                placeholder="Masukkan nama Anda"
-                                className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                            />
-                        </div>
-
-                        <button
-                            onClick={handleCheckout}
-                            disabled={isLoading}
-                            className={`w-full py-3 rounded-lg text-white font-bold text-lg flex items-center justify-center transition-all ${
-                                isLoading 
-                                ? 'bg-gray-400 cursor-not-allowed' 
-                                : 'bg-green-600 hover:bg-green-700 shadow-md hover:shadow-lg'
-                            }`}
-                        >
-                            {isLoading ? (
-                              <>
-                                <FaSpinner className="animate-spin text-xl mr-2" />
-                                <span>Memproses pembayaran...</span>
-                              </>
-                            ) : (
-                              <span>Bayar Sekarang</span>
-                            )}
-                        </button>
-                    </div>
-                </>
-            )}
-          </div>
-        </div>
+        <CartSidebar 
+          cart={cart}
+          setShowCart={setShowCart}
+          removeFromCart={removeFromCart}
+          calculateTotal={calculateTotal}
+          customerName={customerName}
+          setCustomerName={setCustomerName}
+          handleCheckout={handleCheckout}
+          isLoading={isLoading}
+        />
       )}
     </div>
   );
