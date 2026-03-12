@@ -1,10 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import api from '../services/api';
 import Navbar from '../components/Navbar';
+import ConfirmModal from '../components/ConfirmModal';
+import EmptyState from '../components/EmptyState';
+import Pagination from '../components/Pagination';
+import { getStatusBadge } from '../utils/formatters';
 import toast from 'react-hot-toast';
 import { FaSpinner } from 'react-icons/fa';
-import ConfirmModal from '../components/ConfirmModal';
-import EmptyState from "../components/EmptyState";
 import { HiOutlineDocumentText } from 'react-icons/hi';
 
 
@@ -89,18 +91,6 @@ const Transactions = () => {
         }
     };
 
-    const getStatusBadge = (status) => {
-        switch (status) {
-            case 'paid': return <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">Sudah Dibayar</span>;
-            case 'processing': return <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold">Sedang Dimasak</span>;
-            case 'completed': return <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">Selesai</span>;
-            case 'pending': return <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold">Menunggu Pembayaran</span>;
-            case 'cancelled': return <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Dibatalkan</span>;
-            case 'expired': return <span className="bg-gray-200 text-gray-500 px-3 py-1 rounded-full text-xs font-bold">Kedaluwarsa</span>;
-            default: return <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold">{status}</span>;
-        }
-    };
-
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center py-20">
@@ -112,7 +102,7 @@ const Transactions = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <Navbar cartCount={0} setShowCart={() => {}} />
+            <Navbar cartCount={0} setShowCart={() => {}} hideCart={true} />
             <div className="container mx-auto p-4 md:p-6">
                 <h2 className="text-2xl font-bold mb-6">Riwayat Pesanan Saya</h2>
                 <div className="space-y-4">
@@ -215,42 +205,15 @@ const Transactions = () => {
                 </div>
 
                 {/* PAGINATION & LIMIT DATA */}
-                <div className="p-4 border-t border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <div className="flex items-center gap-3">
-                        <span className="text-sm text-gray-600">Tampilkan</span>
-                        <select 
-                            value={limit}
-                            onChange={handleLimitChange}
-                            className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:border-red-500"
-                        >
-                            <option value={5}>5</option>
-                            <option value={10}>10</option>
-                            <option value={20}>20</option>
-                            <option value={50}>50</option>
-                        </select>
-                        <span className="text-sm text-gray-600">dari {totalData} data</span>
-                    </div>
-
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => setPage(page - 1)}
-                            disabled={page === 1}
-                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${page === 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'}`}
-                        >
-                            Sebelumnya
-                        </button>
-                        <span className="px-4 py-2 text-sm font-semibold text-gray-700">
-                            Hal {page} dari {totalPages || 1}
-                        </span>
-                        <button
-                            onClick={() => setPage(page + 1)}
-                            disabled={page === totalPages || totalPages === 0}
-                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${page === totalPages || totalPages === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'}`}
-                        >
-                            Selanjutnya
-                        </button>
-                    </div>
-                </div>
+                <Pagination 
+                    page={page}
+                    limit={limit}
+                    totalPages={totalPages}
+                    totalData={totalData}
+                    onPageChange={setPage}
+                    onLimitChange={handleLimitChange}
+                    limitOptions={[5, 10, 20, 50]}
+                />
             </div>
 
             <ConfirmModal 

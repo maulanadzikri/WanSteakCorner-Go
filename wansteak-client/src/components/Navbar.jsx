@@ -1,8 +1,10 @@
 import React from 'react';
 import { FaUtensils, FaShoppingCart, FaHistory } from 'react-icons/fa';
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
-const Navbar = ({ cartCount, setShowCart }) => {
+const Navbar = ({ cartCount, setShowCart, hideCart = false }) => {
+  const location = useLocation();
+
   return (
     <nav className="bg-red-700 text-white p-4 shadow-md sticky top-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
@@ -16,24 +18,31 @@ const Navbar = ({ cartCount, setShowCart }) => {
           {/* Tombol link ke halaman Riwayat */}
           <Link
             to="/transactions"
-            className="flex items-center gap-1 hover:bg-red-800 px-3 py-2 rounded-lg transition"
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-800 transition-all ${
+              location.pathname === '/transactions'
+              ? 'bg-white text-red-600 shadow-sm'
+              : 'text-white hover:bg-red-700'
+            }`}
             title="Riwaya Pesanan"
           >
             <FaHistory className="text-xl"/>
-            <span className="hidden md:inline font-semibold">Riwayat</span>
+            <span className="hidden md:inline font-semibold">Riwayat Pesanan</span>
           </Link>
 
           {/* Tombol Kerangjang (Cart) */}
-          <button 
-            onClick={() => setShowCart(true)}
-            className="relative p-2 hover:bg-red-800 rounded-full transition">
-            <FaShoppingCart className="text-2xl" />
-            {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-yellow-400 text-red-800 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                {cartCount}
-              </span>
-            )}
-          </button>
+          {!hideCart && (
+            <button 
+              onClick={() => setShowCart(true)}
+              className="relative p-2 hover:bg-red-800 rounded-full transition"
+            >
+              <FaShoppingCart className="text-2xl" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-yellow-400 text-red-800 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </button>
+          )}
         </div>
       </div>
     </nav>
