@@ -4,63 +4,21 @@ import toast from "react-hot-toast";
 import { FaSpinner } from "react-icons/fa";
 import OrderTable from "../components/OrderTable";
 import Pagination from "../components/Pagination";
+import { useOrders } from "../hooks/useOrders";
 
 const AdminOrders = () => {
-    const [orders, setOrders] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
 
-    const [page, setPage] = useState(1)
-    const [limit, setLimit] = useState(10)
-    const [totalPages, setTotalPages] = useState(1)
-    const [totalData, setTotalData] = useState(0)
-
-    const fetchAllOrders = async (isBackground = false) => {
-        try {
-            if (!isBackground) {
-                setLoading(true);
-            }
-
-            const response = await api.get(`/orders?page=${page}&limit=${limit}`);
-            const sortedOrders = (response.data.data || response.data).sort((a, b) => 
-                new Date(b.created_at) - new Date(a.created_at)
-            );
-
-            setOrders(sortedOrders);
-            if (response.data.meta) {
-                setTotalPages(response.data.meta.total_pages);
-                setTotalData(response.data.meta.total);
-            }
-        } catch (error) {
-            console.error("Gagal mengambil data pesanan: ", error);
-            if (!isBackground) toast.error("Gagal memuat pesanan")
-        } finally {
-            if (!isBackground) {
-                setLoading(false);
-            }
-        }
-    };
-
-    useEffect(() => {
-        fetchAllOrders(false);
-
-        // Interval refresh data order per 10s
-        const interval = setInterval(() => {
-            fetchAllOrders(true);
-        }, 10000);
-        return () => clearInterval(interval);
-    }, [page, limit]);
-
-    const handleLimitChange = (newLimit) => {
-        setLimit(newLimit);
-        setPage(1);
-    };
+    const {
+        orders, loading, page, setPage, limit, handleLimitChange, 
+        totalPages, totalData, refreshOrders
+    } = useOrders({ pollingInterval: 10000 });
 
     const handleUpdateStatus = async (orderId, newOrderStatus) => {
         try {
             await api.patch(`/orders/${orderId}/status`, { status: newOrderStatus });
             toast.success("Status pesanan berhasil diperbarui")
-            fetchAllOrders();
+            refreshOrders();
         } catch (error) {
             console.error("Gagal update status: ", error);
             toast.error("Gagal memperbarui status pesanan.");

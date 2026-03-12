@@ -1,55 +1,18 @@
 import { useEffect, useState } from "react";
-import api from "../services/api"
 import { FaSpinner } from "react-icons/fa";
 import OrderTable from "../components/OrderTable";
 import Pagination from "../components/Pagination";
+import { useOrders } from "../hooks/useOrders";
 
 
 const AdminHistory = () => {
-    const [orders, setOrders] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
 
-    // State for Pagination & Filter
-    const [filterStatus, setFilterStatus] = useState('all');
-    const [page, setPage] = useState(1)
-    const [limit, setLimit] = useState(10)
-    const [totalPages, setTotalPages] = useState(1)
-    const [totalData, setTotalData] = useState(0)
-
-    const fetchAllOrders = async () => {
-        try {
-            setLoading(true);
-            const response = await api.get(`/orders?page=${page}&limit=${limit}&status=${filterStatus}`);
-            const sortedOrders = (response.data.data || response.data).sort((a, b) => 
-                new Date(b.created_at) - new Date(a.created_at) 
-            );
-            setOrders(sortedOrders);
-
-            if (response.data.meta) {
-                setTotalPages(response.data.meta.total_pages);
-                setTotalData(response.data.meta.total);
-            }
-        } catch (error) {
-            console.error("Gagal mengambil riwayat transaksi:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchAllOrders();
-    }, [page, limit, filterStatus]);
-
-    const handleFilterChange = (e) => {
-        setFilterStatus(e.target.value);
-        setPage(1);
-    };
-
-    const handleLimitChange = (newLimit) => {
-        setLimit(newLimit);
-        setPage(1);
-    };
+    // Panggil hook useOrder untuk ngehandle pagination, filterStatus agar kode di sini lebih bersih (DRY)
+    const {
+        orders, loading, page, setPage, limit, handleLimitChange, 
+        filterStatus, handleFilterChange, totalPages, totalData
+    } = useOrders();
 
     const parseItems = (items) => {
         if (!items) return [];

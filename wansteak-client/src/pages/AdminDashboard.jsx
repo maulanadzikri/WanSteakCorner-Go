@@ -10,6 +10,7 @@ const AdminDashboard = () => {
         today_revenue: 0,
         total_orders: 0,
         completed_orders: 0,
+        cancelled_orders: 0,
         total_menus: 0,
     });
     const [loading, setLoading] = useState(true);
