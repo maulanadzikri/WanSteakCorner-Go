@@ -16,9 +16,9 @@ const OrderTable = ({ orders, renderAction, onViewDetail, emptyMessage = "Tidak 
     };
 
     return (
-        <div className="overflow-x-auto min-h-[400px]">
-            <table className="w-full text-left border-collapse">
-                <thead>
+        <div className="overflow-x-auto overflow-y-auto h-full w-full">
+            <table className="w-full text-left border-collapse relative">
+                <thead className="sticky top-0 z-10 bg-gray-50">
                     <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm uppercase tracking-wider">
                         <th className="p-4 font-semibold">Order ID & Waktu</th>
                         <th className="p-4 font-semibold">Pelanggan</th>

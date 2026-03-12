@@ -39,9 +39,9 @@ const AdminHistory = () => {
     }
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             {/* Header dan Fitur filter */}
-            <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center bg-gray-50 gap-4">
+            <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center bg-gray-50 gap-4 flex-shrink-0">
                 <h2 className="text-lg font-bold text-gray-800">Semua Transaksi</h2>
                 <div className="flex items-center gap-2">
                     <label className="text-sm font-semibold text-gray-600">Filter Status:</label>
@@ -61,22 +61,26 @@ const AdminHistory = () => {
                 </div>
             </div>
 
-            {/* Table Data */}
-            <OrderTable 
-                orders={orders}
-                emptyMessage="Tidak ada transaksi dengan status tersebut."
-                onViewDetail={(order) => setSelectedOrder(order)}
-            />
+            <div className="flex-1 overflow-hidden">
+                {/* Table Data */}
+                <OrderTable 
+                    orders={orders}
+                    emptyMessage="Tidak ada transaksi dengan status tersebut."
+                    onViewDetail={(order) => setSelectedOrder(order)}
+                />
+            </div>
 
-            {/* PAGINATION & LIMIT DATA */}
-            <Pagination 
-                page={page}
-                limit={limit}
-                totalPages={totalPages}
-                totalData={totalData}
-                onPageChange={setPage}
-                onLimitChange={handleLimitChange}
-            />
+            <div className="flex-shrink-0">
+                {/* PAGINATION & LIMIT DATA */}
+                <Pagination 
+                    page={page}
+                    limit={limit}
+                    totalPages={totalPages}
+                    totalData={totalData}
+                    onPageChange={setPage}
+                    onLimitChange={handleLimitChange}
+                />
+            </div>
             
             {/* Modal Detail Order */}
             {selectedOrder && (

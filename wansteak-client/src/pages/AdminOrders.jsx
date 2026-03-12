@@ -11,7 +11,7 @@ const AdminOrders = () => {
 
     const {
         orders, loading, page, setPage, limit, handleLimitChange, 
-        totalPages, totalData, refreshOrders
+        filterStatus, handleFilterChange, totalPages, totalData, refreshOrders
     } = useOrders({ pollingInterval: 10000 });
 
     const handleUpdateStatus = async (orderId, newOrderStatus) => {
@@ -59,8 +59,26 @@ const AdminOrders = () => {
     };
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="overflow-x-hidden">
+        <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            {/* Header dan Fitur filter */}
+            <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center bg-gray-50 gap-4 flex-shrink-0">
+                <h2 className="text-lg font-bold text-gray-800">Semua Transaksi</h2>
+                <div className="flex items-center gap-2">
+                    <label className="text-sm font-semibold text-gray-600">Filter Status:</label>
+                    <select 
+                        value={filterStatus}
+                        onChange={handleFilterChange}
+                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
+                    >
+                        <option value="all">Semua Status</option>
+                        <option value="completed">Selesai</option>
+                        <option value="paid">Sudah Dibayar</option>
+                        <option value="processing">Sedang Dimasak</option>
+                        <option value="pending">Menunggu Pembayaran</option>
+                    </select>
+                </div>
+            </div>
+            <div className="flex-1 overflow-hidden">
                 <OrderTable 
                     orders={orders}
                     emptyMessage="Tidak ada pesanan masuk saat ini."
@@ -90,15 +108,17 @@ const AdminOrders = () => {
                 />
             </div>
 
-            {/* PAGINATION & LIMIT DATA */}
-            <Pagination 
-                page={page}
-                limit={limit}
-                totalPages={totalPages}
-                totalData={totalData}
-                onPageChange={setPage}
-                onLimitChange={handleLimitChange}
-            />
+            <div className="flex-shrink-0">
+                {/* PAGINATION & LIMIT DATA */}
+                <Pagination 
+                    page={page}
+                    limit={limit}
+                    totalPages={totalPages}
+                    totalData={totalData}
+                    onPageChange={setPage}
+                    onLimitChange={handleLimitChange}
+                />
+            </div>
 
             {selectedOrder && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity">
