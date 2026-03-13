@@ -22,7 +22,7 @@ import (
 type OrderUsecase interface {
 	PlaceOrder(input models.CreateOrderInput) (models.Order, error)
 	PaymentNotification(input models.MidtransNotificationInput) error
-	GetAllOrders(page, limit int, status string) ([]models.Order, map[string]interface{}, error)
+	GetAllOrders(page, limit int, status string, excludeStatuses []string) ([]models.Order, map[string]interface{}, error)
 	GetOrder(orderId string) (models.Order, error)
 	UpdateOrderStatus(orderId, newStatus string) error
 	CancelOrder(orderId string) error
@@ -165,7 +165,7 @@ func (u *orderUsecase) PaymentNotification(input models.MidtransNotificationInpu
 	return u.orderRepo.UpdateStatus(orderID, newStatus)
 }
 
-func (u *orderUsecase) GetAllOrders(page int, limit int, status string) ([]models.Order, map[string]interface{}, error) {
+func (u *orderUsecase) GetAllOrders(page int, limit int, status string, excludeStatuses []string) ([]models.Order, map[string]interface{}, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -175,7 +175,7 @@ func (u *orderUsecase) GetAllOrders(page int, limit int, status string) ([]model
 
 	offset := (page - 1) * limit
 
-	orders, total, err := u.orderRepo.FindAll(limit, offset, status)
+	orders, total, err := u.orderRepo.FindAll(limit, offset, status, excludeStatuses)
 	if err != nil {
 		return nil, nil, err
 	}

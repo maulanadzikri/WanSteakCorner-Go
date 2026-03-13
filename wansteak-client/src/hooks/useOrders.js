@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 export const useOrders = ({
     initialLimit = 10,
     initialStatus = 'all',
+    excludeStatuses = [],
     pollingInterval = null,
 } = {}) => {
     // 1. Pindahkan semua state ke sini
@@ -22,7 +23,17 @@ export const useOrders = ({
         try {
             if (!isBackground) setLoading(true);
 
-            const response = await api.get(`/orders?page=${page}&limit=${limit}&status=${filterStatus}`);
+            let queryUrl = `/orders?page=${page}&limit=${limit}`;
+
+            if (filterStatus !== 'all') {
+                queryUrl += `&status=${filterStatus}`;
+            }
+
+            if (excludeStatuses.length > 0) {
+                queryUrl += `&exclude_status=${excludeStatuses.join(',')}`;
+            }
+
+            const response = await api.get(queryUrl);
             const sortedOrders = (response.data.data || response.data).sort((a, b) =>
                 new Date(b.created_at) - new Date(a.created_at)
             );

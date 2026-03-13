@@ -12,7 +12,10 @@ const AdminOrders = () => {
     const {
         orders, loading, page, setPage, limit, handleLimitChange, 
         filterStatus, handleFilterChange, totalPages, totalData, refreshOrders
-    } = useOrders({ pollingInterval: 10000 });
+    } = useOrders({ 
+        pollingInterval: 10000,
+        excludeStatuses: ['cancelled', 'expired']
+    });
 
     const handleUpdateStatus = async (orderId, newOrderStatus) => {
         try {

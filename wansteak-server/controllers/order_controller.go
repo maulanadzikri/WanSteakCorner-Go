@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"wansteak-server/models"
 	"wansteak-server/usecase"
 
@@ -58,11 +59,18 @@ func (c *OrderController) GetAllOrders(ctx *gin.Context){
 	pageStr := ctx.DefaultQuery("page", "1")
 	limitStr := ctx.DefaultQuery("limit", "10")
 	status := ctx.Query("status")
+	excludeStatusStr := ctx.Query("exclude_status")
+
+	// Ubah string "cancelled,expired" menjadi array/slice []string
+	var excludeStatuses []string
+	if excludeStatusStr != "" {
+		excludeStatuses = strings.Split(excludeStatusStr, ",")
+	}
 
 	page, _ := strconv.Atoi(pageStr)
 	limit, _ := strconv.Atoi(limitStr)
 
-	orders, meta, err := c.orderUsecase.GetAllOrders(page, limit, status)
+	orders, meta, err := c.orderUsecase.GetAllOrders(page, limit, status, excludeStatuses)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data pesanan"})
 		return

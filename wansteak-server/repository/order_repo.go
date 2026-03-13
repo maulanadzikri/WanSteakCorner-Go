@@ -9,7 +9,7 @@ import (
 type OrderRepository interface {
 	Save(order models.Order) error
 	UpdateStatus(orderId string, newStatus string) error
-	FindAll(limit, offset int, status string) ([]models.Order, int64, error)
+	FindAll(limit, offset int, status string, excludeStatuses []string) ([]models.Order, int64, error)
 	FindByID(orderId string) (models.Order, error)
 	GetDashboardStats() (models.DashboardStats, error)
 }
@@ -30,7 +30,7 @@ func (r *orderRepo) UpdateStatus(orderId string, newStatus string) error {
 	return r.db.Model(&models.Order{}).Where("id = ?", orderId).Update("status", newStatus).Error
 }
 
-func (r *orderRepo) FindAll(limit int, offset int, status string) ([]models.Order, int64, error) {
+func (r *orderRepo) FindAll(limit int, offset int, status string, excludeStatuses []string) ([]models.Order, int64, error) {
 	var orders []models.Order
 	var total int64
 
@@ -38,6 +38,10 @@ func (r *orderRepo) FindAll(limit int, offset int, status string) ([]models.Orde
 	
 	if status != "" && status != "all" {
 		query = query.Where("status = ?", status)
+	}
+
+	if len(excludeStatuses) > 0 {
+		query = query.Where("status NOT IN ?", excludeStatuses)
 	}
 
 	if err := query.Count(&total).Error; err != nil {
