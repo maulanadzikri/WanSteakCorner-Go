@@ -46,6 +46,19 @@ const Home = () => {
 
   const removeFromCart = (id) => {
     setCart(cart.filter(item => item.id !== id));
+    toast.success("Menu dihapus dari keranjang");
+  };
+
+  const updateQuantity = (id, delta) => {
+    setCart(prevCart => {
+      return prevCart.map(item => {
+        if (item.id === id) {
+          // Tambah atau kurangi qty berdasarkan delta (1 atau -1)
+          return { ...item, qty: item.qty + delta};
+        }
+        return item;
+      }).filter(item => item.qty > 0); // Jika qty jadi 0, otomatis item terhapus
+    });
   };
 
   const calculateTotal = () => {
@@ -151,6 +164,7 @@ const Home = () => {
           cart={cart}
           setShowCart={setShowCart}
           removeFromCart={removeFromCart}
+          updateQuantity={updateQuantity}
           calculateTotal={calculateTotal}
           customerName={customerName}
           setCustomerName={setCustomerName}

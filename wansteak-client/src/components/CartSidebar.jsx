@@ -7,6 +7,7 @@ const CartSidebar = ({
     cart, 
     setShowCart, 
     removeFromCart, 
+    updateQuantity,
     calculateTotal, 
     customerName, 
     setCustomerName, 
@@ -34,22 +35,48 @@ const CartSidebar = ({
                     <>
                         <div className="space-y-4 mb-6">
                             {cart.map((item) => (
-                                <div key={item.id} className="flex justify-between items-center border-b pb-2">
+                                <div key={item.id} className="flex justify-between items-center border-b pb-3">
+                                    
+                                    {/* Info Nama Menu & Harga Satuan */}
                                     <div>
-                                        <h4 className="font-bold">{item.name}</h4>
-                                        <p className="text-sm text-gray-600">
+                                        <h4 className="font-bold text-gray-800 text-sm md:text-base leading-tight">{item.name}</h4>
+                                        <p className="text-xs text-gray-500 mt-1">
                                             Rp {item.price.toLocaleString('id-ID')} x {item.qty}
                                         </p>
                                     </div>
-                                    <div className="flex items-center gap-4">
-                                        <span className="font-bold text-red-600">
+
+                                    <div className="flex flex-col items-end gap-2">
+                                        {/* Sub Total */}
+                                        <span className="font-bold text-red-600 text-sm">
                                             Rp {(item.price * item.qty).toLocaleString('id-ID')}
                                         </span>
-                                        <button 
-                                            onClick={() => removeFromCart(item.id)}
-                                            className="text-red-500 hover:text-red-700 transition-colors">
-                                            <FaTrash />
-                                        </button>
+
+                                        {/* Kontrol Kuantitas & Tombol Hapus */}
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex items-center bg-gray-100 rounded-lg p-0.5 border border-gray-200">
+                                                <button
+                                                    onClick={() => updateQuantity(item.id, -1)}
+                                                    className="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-white hover:text-red-500 rounded-md transition font-bold"
+                                                >
+                                                    -
+                                                </button>
+                                                <span className="w-6 text-center text-sm font-semibold text-gray-800">
+                                                    {item.qty}
+                                                </span>
+                                                <button
+                                                    onClick={() => updateQuantity(item.id, 1)}
+                                                    className="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-white hover:text-green-600 rounded-md transition font-bold"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+
+                                            <button 
+                                                onClick={() => removeFromCart(item.id)}
+                                                className="text-red-500 hover:text-red-700 transition-colors">
+                                                <FaTrash size={14} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
