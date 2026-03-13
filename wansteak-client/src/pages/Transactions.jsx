@@ -58,8 +58,8 @@ const Transactions = () => {
         fetchOrders();
     }, [page, limit]);
 
-    const handleLimitChange = (e) => {
-        setLimit(Number(e.target.value));
+    const handleLimitChange = (newLimit) => {
+        setLimit(newLimit);
         setPage(1);
     };
 
@@ -107,89 +107,82 @@ const Transactions = () => {
                 <h2 className="text-2xl font-bold mb-6">Riwayat Pesanan Saya</h2>
                 <div className="space-y-4">
                     {orders.map((order) => (
-                        <div key={order.order_id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-4 transition hover:shadow-md">
+                        <div key={order.order_id} className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-200 mb-4 transition hover:shadow-md flex flex-col gap-4">
         
-                            {/* GUNAKAN GRID LAYOUT (12 Kolom) */}
-                            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-
-                                {/* KOLOM KIRI: Info Order (3 Kolom) */}
-                                <div className="md:col-span-3 space-y-1">
-                                    <p className="text-xs text-gray-400 font-medium">Order ID</p>
-                                    <div className="flex items-center gap-2">
-                                        <h3 className="font-bold text-gray-800 text-sm">{order.order_id}</h3>
-                                        <span className="p-4 uppercase">{getStatusBadge(order.status)}</span>
-                                    </div>
-                                    <p className="text-xs text-gray-400">
+                            {/* BAGIAN ATAS: Info Order & Badge Status */}
+                            <div className="flex justify-between items-start border-b border-gray-100 pb-4">
+                                <div>
+                                    <p className="text-xs text-gray-400 font-medium mb-1">Order ID</p>
+                                    <h3 className="font-bold text-gray-800 text-sm md:text-base">{order.order_id}</h3>
+                                    <p className="text-xs text-gray-500 mt-1">
                                         {new Date(order.date || Date.now()).toLocaleString('id-ID', {
                                             day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
                                         })}
                                     </p>
-                                    <p className="text-sm font-semibold text-yellow-600 pt-1">
+                                    <p className="text-sm font-semibold text-yellow-600 mt-1">
                                         {order.customer_name || 'Pelanggan'} 
                                     </p>
                                 </div>
+                                {/* Status selalu konsisten di pojok kanan atas */}
+                                <div className="text-right">
+                                    {getStatusBadge(order.status)}
+                                </div>
+                            </div>
 
-                                {/* KOLOM TENGAH: Rincian Menu (6 Kolom) */}
-                                {/* Area ini akan selalu mengambil 50% lebar kartu, membuat posisi konsisten */}
-                                <div className="md:col-span-6 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            {/* BAGIAN BAWAH: Rincian Menu & Total/Aksi */}
+                            <div className="flex flex-col md:flex-row justify-between gap-4 md:gap-6">
+                                
+                                {/* Kiri/Atas: Rincian Menu */}
+                                <div className="w-full md:w-3/5 bg-gray-50 p-4 rounded-lg border border-gray-100">
                                     <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Rincian Menu</p>
                                     <ul className="space-y-1">
-                                        {/* Tampilkan maksimal 2 item, sisanya "+ X others" agar rapi */}
                                         {(order.items || []).slice(0, 3).map((item, idx) => (
                                             <li key={idx} className="flex justify-between text-sm text-gray-700">
-                                                <span className="truncate w-2/3">
+                                                <span className="truncate pr-4">
                                                     {item.quantity}x {item.menu_name}
                                                 </span>
-                                                <span className="font-medium text-gray-500">
+                                                <span className="font-medium text-gray-500 whitespace-nowrap">
                                                     Rp {item.sub_total?.toLocaleString('id-ID')}
                                                 </span>
                                             </li>
                                         ))}
                                         {(order.items || []).length > 3 && (
-                                            <li className="text-xs text-gray-400 italic pt-1">
+                                            <li className="text-xs text-gray-400 italic pt-1 border-t border-gray-200 mt-2">
                                                 + {(order.items || []).length - 3} menu lainnya...
                                             </li>
                                         )}
                                     </ul>
                                 </div>
 
-                                {/* KOLOM KANAN: Total & Action (3 Kolom) */}
-                                <div className="md:col-span-3 flex flex-col items-end justify-center text-right h-full">
-                                    <p className="text-xs text-gray-400 mb-1">Total Pembayaran</p>
-                                    <p className="text-xl font-bold text-red-600 mb-3">
-                                        Rp {order.total?.toLocaleString('id-ID')}
-                                    </p>
+                                {/* Kanan/Bawah: Total & Tombol Aksi */}
+                                <div className="w-full md:w-2/5 flex flex-col justify-between">
                                     
-                                    {/* Tombol hanya muncul jika Pending, tapi tidak menggeser layout kolom */}
-                                    <div className="h-10 w-full flex justify-end">
-                                        {order.status === 'pending' ? (
-                                            <div>
-                                                <button 
-                                                    onClick={() => triggerCancel(order.order_id)}
-                                                    className="bg-red-100 text-red-500 text-sm px-6 py-2 rounded-lg font-semibold hover:bg-red-200 transition shadow-sm hover:shadow-md w-full md:w-auto">
-                                                    Batalkan
-                                                </button>
-                                                <button 
-                                                    onClick={() => handlePay(order.snap_token)}
-                                                    className="bg-blue-600 text-white text-sm px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition shadow-sm hover:shadow-md w-full md:w-auto">
-                                                    Bayar Sekarang
-                                                </button>
-                                            </div>
-                                        ) : order.status === 'cancelled' ? (
-                                            <span className="text-red-500 text-sm font-semibold flex items-center">
-                                                Pesanan Dibatalkan
-                                            </span>
-                                        ) : order.status === 'expired' ? (
-                                            <span className="text-gray-500 text-sm font-semibold flex items-center">
-                                                Waktu Bayar Habis
-                                            </span>
-                                        ) : (
-                                            // Placeholder kosong agar tinggi tetap terjaga (opsional)
-                                            <div className="h-10"></div> 
-                                        )}
+                                    {/* Total Pembayaran (Mobile: Kiri-Kanan, Desktop: Rata Kanan) */}
+                                    <div className="flex justify-between md:flex-col md:items-end mb-4 md:mb-0">
+                                        <p className="text-xs text-gray-400 font-medium md:mb-1">Total Pembayaran</p>
+                                        <p className="text-lg md:text-xl font-bold text-red-600">
+                                            Rp {order.total?.toLocaleString('id-ID')}
+                                        </p>
                                     </div>
+                                    
+                                    {/* Tombol Aksi (Hanya muncul jika Pending!) */}
+                                    {order.status === 'pending' && (
+                                        <div className="flex gap-2 w-full mt-4 md:mt-auto">
+                                            <button 
+                                                onClick={() => triggerCancel(order.order_id)}
+                                                className="bg-red-50 text-red-500 text-sm py-2 px-4 rounded-lg font-semibold hover:bg-red-100 transition shadow-sm flex-1 text-center">
+                                                Batalkan
+                                            </button>
+                                            <button 
+                                                onClick={() => handlePay(order.snap_token)}
+                                                className="bg-blue-600 text-white text-sm py-2 px-4 rounded-lg font-semibold hover:bg-blue-700 transition shadow-sm flex-1 text-center">
+                                                Bayar
+                                            </button>
+                                        </div>
+                                    )}
+                                    {/* Kita HAPUS teks "Dibatalkan/Selesai" di sini karena sudah ada Badge di atas! */}
+                                    
                                 </div>
-
                             </div>
                         </div>
                     ))}
