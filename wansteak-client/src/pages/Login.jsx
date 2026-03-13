@@ -27,8 +27,12 @@ const Login = () => {
             // Kita namakan 'admin_token' agar berbeda dengan data guest
             localStorage.setItem('admin_token', token);
 
+            const username = email.split('@')[0];
+            const capitalizeName = username.charAt(0).toUpperCase() + username.slice(1);
+            localStorage.setItem('admin_name', capitalizeName);
+
             // 4. Redirect ke Dashboard Admin
-            toast.success("Login Berhasil!");
+            toast.success(`Login Berhasil. Selamat Datang ${capitalizeName}!`);
             navigate("/admin/dashboard");
         } catch (err) {
             console.error(err);

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { FaBars, FaSignOutAlt, FaTimes } from "react-icons/fa";
+import { FaBars, FaSignOutAlt, FaTimes, FaUtensils } from "react-icons/fa";
 import { MdNotifications, MdRestaurantMenu, MdHistory, MdDashboard } from "react-icons/md";
 import toast from "react-hot-toast";
 import ConfirmModal from "./ConfirmModal";
@@ -9,7 +9,10 @@ const AdminLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [showLogoutModal, setShowLogoutModal] = useState(false);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const adminName = localStorage.getItem('admin_name') || 'Admin';
+    const adminInitial = adminName.charAt(0).toUpperCase();
 
     const triggerLogout = () => {
         setShowLogoutModal(true);
@@ -19,6 +22,7 @@ const AdminLayout = () => {
         setShowLogoutModal(false);
         // Remove token and redirect to login
         localStorage.removeItem("admin_token");
+        localStorage.removeItem("admin_name");
         toast.success("Berhasil logout")
         navigate("/login");
     };
@@ -43,15 +47,42 @@ const AdminLayout = () => {
 
             {/* SIDEBAR */}
             <aside 
-                className={`fixed inset-y-0 left-0 z-50 w-64 h-full bg-white border-r border-gray-200 flex flex-col shadow-lg md:shadow-sm transform transition-transform duration-300 ease-in-out 
-                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-                md:relative md:translate-x-0 flex-shrink-0`}
+                className={
+                    `fixed inset-y-0 left-0 z-50 w-64 h-full bg-white border-r border-gray-200 flex flex-col shadow-lg md:shadow-sm transform transition-transform duration-300 ease-in-out 
+                    ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
+                    md:relative md:translate-x-0 flex-shrink-0`
+                }
             >
-                <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-                    <h2 className="text-2xl font-extrabold text-red-600">Wan Steak Admin</h2>
+                <div className="p-5 border-b border-gray-200 relative">
+                    {/* Brand Logo & Nama Aplikasi */}
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="bg-red-600 text-white p-2 rounded-lg shadow-sm">
+                            <FaUtensils className="text-lg" />
+                        </div>
+                        <h2 className="text-xl font-extrabold text-red-700 flex tracking-tight">
+                            Wan<span className="text-red-600">Steak</span>
+                        </h2>
+                    </div>
+                    
+
+                    {/* User Profile Mini Card */}
+                    <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100 shadow-sm">
+                        {/* Avatar bulat dengan inisial */}
+                        <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-lg flex-shrink-0">
+                            {adminInitial}
+                        </div>
+                        {/* Info Nama dan Role */}
+                        <div className="flex flex-col overflow-hidden">
+                            <p className="text-xs text-gray-500 font-medium mb-0.5">Administrator</p>
+                            <p className="text-sm font-bold text-gray-800 truncate">
+                                {adminName} 
+                            </p>
+                        </div>
+                    </div>
+                    
                     <button
                         onClick={() => setIsSidebarOpen(false)}
-                        className="text-gray-500 hover:text-red-600 md:hidden text-2xl"
+                        className="text-gray-400 hover:text-red-600 md:hidden text-2xl absolute top-5 right-5"
                     >
                         <FaTimes />
                     </button>
