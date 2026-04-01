@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import LandingPage from './pages/LandingPage';
 import Home from './pages/Home';
 import Transactions from './pages/Transactions';
 import Login from './pages/Login';
@@ -15,7 +16,8 @@ function App() {
     <BrowserRouter>
       <Toaster position='top-right' reverseOrder={false} />
       <Routes>
-        <Route path="/" element={<Home />}/>
+        <Route path="/" element={<LandingPage />}/>
+        <Route path="/menu" element={<Home />}/>
         <Route path="/transactions" element={<Transactions />}/>
         <Route path="/login" element={<Login />}/>
 
