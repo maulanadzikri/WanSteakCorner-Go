@@ -6,7 +6,7 @@ import EmptyState from '../components/EmptyState';
 import Pagination from '../components/Pagination';
 import { getStatusBadge } from '../utils/formatters';
 import toast from 'react-hot-toast';
-import { FaSpinner } from 'react-icons/fa';
+import { FaChevronDown, FaChevronUp, FaSpinner } from 'react-icons/fa';
 import { HiOutlineDocumentText } from 'react-icons/hi';
 
 
@@ -14,6 +14,7 @@ const Transactions = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [cancelOrder, setCancelOrder] = useState(null);
+    const [expandedOrders, setExpandedOrders] = useState({});
 
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
@@ -57,6 +58,13 @@ const Transactions = () => {
     useEffect(() => {
         fetchOrders();
     }, [page, limit]);
+
+    const toggleExpand = (orderId) => {
+        setExpandedOrders(prev => ({
+            ...prev,
+            [orderId]: !prev[orderId]
+        }));
+    };
 
     const handleLimitChange = (newLimit) => {
         setLimit(newLimit);
@@ -136,10 +144,13 @@ const Transactions = () => {
                                 <div className="w-full md:w-3/5 bg-gray-50 p-4 rounded-lg border border-gray-100">
                                     <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Rincian Menu</p>
                                     <ul className="space-y-1">
-                                        {(order.items || []).slice(0, 3).map((item, idx) => (
-                                            <li key={idx} className="flex justify-between text-sm text-gray-700">
-                                                <span className="truncate pr-4">
-                                                    {item.quantity}x {item.menu_name}
+                                        {(order.items || []).slice(0, expandedOrders[order.order_id] ? undefined : 3).map((item, idx) => (
+                                            <li key={idx} className="flex justify-between text-sm text-gray-700 animate-fadeIn">
+                                                <span className="truncate pr-4 flex items-center gap-2">
+                                                    <span className="text-xs bg-gray-200 px-1.5 py-0.5 rounded text-gray-600 font-bold">
+                                                        {item.quantity}x 
+                                                    </span>
+                                                    {item.menu_name}
                                                 </span>
                                                 <span className="font-medium text-gray-500 whitespace-nowrap">
                                                     Rp {item.sub_total?.toLocaleString('id-ID')}
@@ -147,8 +158,23 @@ const Transactions = () => {
                                             </li>
                                         ))}
                                         {(order.items || []).length > 3 && (
-                                            <li className="text-xs text-gray-400 italic pt-1 border-t border-gray-200 mt-2">
-                                                + {(order.items || []).length - 3} menu lainnya...
+                                            <li className="pt-2 border-t border-gray-200 mt-2">
+                                                <button
+                                                    onClick={() => toggleExpand(order.order_id)}
+                                                    className="text-xs text-red-600 font-extrabold hover:text-red-800 transition-colors flex items-center gap-1.5 uppercase tracking-tighter w-full justify-center md:justify-start"
+                                                >
+                                                    {expandedOrders[order.order_id] ? (
+                                                        <>
+                                                            <FaChevronUp className="text-[10px]" />
+                                                            <span>Tampilkan lebih sedikit</span>
+                                                        </>
+                                                    ) :(
+                                                        <>
+                                                            <FaChevronDown className="text-[10px]" />
+                                                            <span>Lihat {(order.items || []).length - 3} menu lainnya...</span>
+                                                        </>
+                                                    )}
+                                                </button>
                                             </li>
                                         )}
                                     </ul>
