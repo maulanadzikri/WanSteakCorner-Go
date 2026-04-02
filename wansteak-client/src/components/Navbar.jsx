@@ -9,7 +9,7 @@ const Navbar = ({ cartCount, setShowCart, hideCart = false }) => {
     <nav className="bg-red-700 text-white p-4 shadow-md sticky top-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo * Judul -> Klik untuk kembali ke Home */}
-        <Link to="/" className="flex items-center gap-2 hover:text-gray-200 transition">
+        <Link to="/menu" className="flex items-center gap-2 hover:text-gray-200 transition">
           <FaUtensils className="text-2xl" />
           <h1 className="text-xl font-bold">Wan Steak Corner</h1>
         </Link>

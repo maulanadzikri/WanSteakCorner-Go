@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar';
 import MenuCard from '../components/MenuCard';
 import CartSidebar from '../components/CartSidebar';
 import toast from 'react-hot-toast';
-import { FaSpinner, FaUtensils } from 'react-icons/fa';
+import { FaSearch, FaSpinner, FaUtensils } from 'react-icons/fa';
 import { MdAccessTime, MdWarningAmber } from 'react-icons/md';
 
 const CATEGORY_TABS = ["Semua", "Makanan Utama", "Minuman", "Snack"];
@@ -16,6 +16,7 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("Semua");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch Menu dari Backend saat loading awal
   useEffect(() => {
@@ -36,9 +37,14 @@ const Home = () => {
 
   // Filter menu berdasarkan kategori yang dipilih
   const filteredMenus = menus.filter(menu => {
-    if (activeCategory === "Semua") return true;
+    // Check 1: Is category match?
     const menuCategory = menu.category || "Makanan Utama"; 
-    return menuCategory === activeCategory;
+    const matchCategory = activeCategory === "Semua" || menuCategory === activeCategory;
+
+    // Check 2: Does menu name match search query?
+    const matchSearch = menu.name.toLowerCase().includes(searchQuery.toLowerCase());
+
+    return matchCategory && matchSearch;
   });
 
   // Logic Cart (Tambah & Hapus)
@@ -161,22 +167,47 @@ const Home = () => {
       {/* Main Content */}
       <div className="container mx-auto p-4 md:p-6">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Daftar Menu</h2>
-        {/* Category Tabs */}
-        <div className="flex justify-start overflow-x-auto hide-scrollbar mb-6 pb-2 -mx-4 px-4 md:mx-0 md:px-0">
-          <div className="inline-flex bg-white p-1.5 rounded-full shadow-sm border border-gray-100 w-max">
-            {CATEGORY_TABS.map((category) => (
-              <button
-                key={category}
-                onClick={() => setActiveCategory(category)}
-                className={`px-6 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm duration-300 flex-shrink-0 ${
-                  activeCategory === category
-                    ? 'bg-red-700 text-white shadow-md'
-                    : 'text-gray-600 bg-transparent hover:bg-gray-50 hover:text-red-700'
-                }`}
+        
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+          {/* Search Bar */}
+          <div className="relative w-full md:w-80 lg:w-96 order-1 md:order-2">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <FaSearch className="text-gray-400" />
+            </div>
+            <input 
+              type="text" 
+              placeholder="Cari menu favoritmu..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-4 py-4 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent shadow-sm transition-all text-sm md:text-base"
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-red-500 font-bold"
               >
-                {category}
+                &times;
               </button>
-            ))}
+            )}
+          </div>
+
+          {/* Category Tabs */}
+          <div className="flex overflow-x-auto hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0 order-2 md:order-1 w-full md:w-auto">
+            <div className="inline-flex bg-white p-1.5 rounded-full shadow-sm border border-gray-100 w-max">
+              {CATEGORY_TABS.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setActiveCategory(category)}
+                  className={`px-6 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm duration-300 flex-shrink-0 ${
+                    activeCategory === category
+                      ? 'bg-red-700 text-white shadow-md'
+                      : 'text-gray-600 bg-transparent hover:bg-gray-50 hover:text-red-700'
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -193,7 +224,10 @@ const Home = () => {
             </div>
             <h3 className="text-2xl font-extrabold text-gray-800 mb-2">Oops!</h3>
             <p className="text-gray-500 font-medium">
-              Menu untuk kategori <span className="font-bold text-gray-700">"{activeCategory}"</span> belum tersedia.
+              {searchQuery
+                ? `Tidak ada menu yang cocok dengan "${searchQuery}" di kategori "${activeCategory}". Coba kata kunci lain?`
+                : `Menu untuk kategori "${activeCategory}" belum tersedia.`
+              }
             </p>
           </div>
         )}
