@@ -48,6 +48,7 @@ func (u *menuUsecase) Update(id uint, input models.Menu) (models.Menu, error) {
 	existingMenu.Image = input.Image
 	existingMenu.Price = input.Price
 	existingMenu.Stok = input.Stok
+	existingMenu.Category = input.Category
 
 	return u.menuRepo.Update(existingMenu)
 }

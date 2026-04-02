@@ -6,4 +6,5 @@ type Menu struct {
 	Image string  `json:"image"`
 	Price float64 `json:"price"`
 	Stok  string  `json:"stok"`
+	Category string `gorm:"type:varchar(50);default:'Makanan Utama'" json:"category" form:"category"`
 }

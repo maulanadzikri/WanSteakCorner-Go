@@ -7,12 +7,13 @@ import ConfirmModal from "../components/ConfirmModal";
 import EmptyState from "../components/EmptyState";
 import { HiOutlineDocumentText } from "react-icons/hi";
 
+const MENU_CATEGORIES = ["Makanan Utama", "Minuman", "Snack"];
 
 const AdminMenu = () => {
     const navigate = useNavigate();
     const [menus, setMenus] = useState([]);
-    const [loading, setLoading] = useState(true)
-    const [menuToDelete, setMenuToDelete] = useState(null)
+    const [loading, setLoading] = useState(true);
+    const [menuToDelete, setMenuToDelete] = useState(null);
 
     // State for Modal Form
     const [showModal, setShowModal] = useState(false);
@@ -24,7 +25,8 @@ const AdminMenu = () => {
         name: '',
         price: '',
         image: '',
-        stok: 'tersedia'
+        stok: 'tersedia',
+        category: MENU_CATEGORIES[0]
     });
 
     // 1. Check Auth & Fetch Data Menu on first render
@@ -107,7 +109,7 @@ const AdminMenu = () => {
 
     const openAddModal = () => {
         setIsEdit(false);
-        setFormData({name: '', price: '', image: '', stok: 'tersedia'});
+        setFormData({name: '', price: '', image: '', stok: 'tersedia', category: 'Makanan Utama'});
         setShowModal(true);
     };
 
@@ -118,7 +120,8 @@ const AdminMenu = () => {
             name: menu.name,
             price: menu.price,
             image: menu.image,
-            stok: menu.stok
+            stok: menu.stok,
+            category: menu.category || 'Makanan Utama'
         });
         setShowModal(true);
     };
@@ -156,6 +159,7 @@ const AdminMenu = () => {
                             <tr className="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider">
                                 <th className="p-4 font-semibold border-b">Gambar</th>
                                 <th className="p-4 font-semibold border-b">Nama Menu</th>
+                                <th className="p-4 font-semibold border-b">Kategori</th>
                                 <th className="p-4 font-semibold border-b">Harga</th>
                                 <th className="p-4 font-semibold border-b">Stok</th>
                                 <th className="p-4 font-semibold border-b text-center">Aksi</th>
@@ -168,6 +172,11 @@ const AdminMenu = () => {
                                         <img src={menu.image || "https://placehold.co/50x50?text=No+Img"} alt={menu.name} className="w-16 h-16 object-cover rounded shadow-sm" />
                                     </td>
                                     <td className="p-4 font-medium">{menu.name}</td>
+                                    <td className="p-4">
+                                        <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-semibold">
+                                            {menu.category || 'Makanan Utama'}
+                                        </span>
+                                    </td>
                                     <td className="p-4 text-red-600 font-semibold">
                                         Rp {menu.price.toLocaleString('id-ID')}
                                     </td>
@@ -233,6 +242,19 @@ const AdminMenu = () => {
                                     className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" 
                                     placeholder="Contoh: Steak Wagyu"
                                 />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Kategori</label>
+                                <select 
+                                    name="category" value={formData.category} onChange={handleFormChange}
+                                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                >
+                                    {MENU_CATEGORIES.map((cat) => (
+                                        <option key={cat} value={cat}>
+                                            {cat}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Harga (Rp)</label>

@@ -4,9 +4,10 @@ import Navbar from '../components/Navbar';
 import MenuCard from '../components/MenuCard';
 import CartSidebar from '../components/CartSidebar';
 import toast from 'react-hot-toast';
-import { FaSpinner } from 'react-icons/fa';
+import { FaSpinner, FaUtensils } from 'react-icons/fa';
 import { MdAccessTime, MdWarningAmber } from 'react-icons/md';
 
+const CATEGORY_TABS = ["Semua", "Makanan Utama", "Minuman", "Snack"];
 const Home = () => {
   const [menus, setMenus] = useState([]);
   const [cart, setCart] = useState([]);
@@ -14,8 +15,9 @@ const Home = () => {
   const [customerName, setCustomerName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState("Semua");
 
-  // 1. Fetch Menu dari Backend saat loading awal
+  // Fetch Menu dari Backend saat loading awal
   useEffect(() => {
     fetchMenus();
   }, []);
@@ -32,7 +34,14 @@ const Home = () => {
     }
   };
 
-  // 2. Logic Cart (Tambah & Hapus)
+  // Filter menu berdasarkan kategori yang dipilih
+  const filteredMenus = menus.filter(menu => {
+    if (activeCategory === "Semua") return true;
+    const menuCategory = menu.category || "Makanan Utama"; 
+    return menuCategory === activeCategory;
+  });
+
+  // Logic Cart (Tambah & Hapus)
   const addToCart = (menu) => {
     const existing = cart.find((item) => item.id === menu.id);
     if (existing) {
@@ -148,15 +157,49 @@ const Home = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar cartCount={cart.reduce((a, b) => a + b.qty, 0)} setShowCart={setShowCart} />
 
+
       {/* Main Content */}
       <div className="container mx-auto p-4 md:p-6">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Daftar Menu</h2>
+        {/* Category Tabs */}
+        <div className="flex justify-start overflow-x-auto hide-scrollbar mb-6 pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+          <div className="inline-flex bg-white p-1.5 rounded-full shadow-sm border border-gray-100 w-max">
+            {CATEGORY_TABS.map((category) => (
+              <button
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                className={`px-6 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm duration-300 flex-shrink-0 ${
+                  activeCategory === category
+                    ? 'bg-red-700 text-white shadow-md'
+                    : 'text-gray-600 bg-transparent hover:bg-gray-50 hover:text-red-700'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {menus.map((menu) => (
+          {filteredMenus.map((menu) => (
             <MenuCard key={menu.id} menu={menu} addToCart={addToCart} />
           ))}
         </div>
+
+        {filteredMenus.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-16 px-4 bg-gray-50 rounded-2xl border border-gray-200 mt-4 mx-auto max-w-2xl text-center">
+            <div className="bg-gray-200/50 p-5 rounded-full mb-4">
+              <FaUtensils className="text-5xl text-gray-400" />
+            </div>
+            <h3 className="text-2xl font-extrabold text-gray-800 mb-2">Oops!</h3>
+            <p className="text-gray-500 font-medium">
+              Menu untuk kategori <span className="font-bold text-gray-700">"{activeCategory}"</span> belum tersedia.
+            </p>
+          </div>
+        )}
       </div>
+      
+      
 
       {/* Cart Sidebar / Modal */}
       {showCart && (
